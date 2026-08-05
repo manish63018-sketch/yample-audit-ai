@@ -11,6 +11,7 @@ import { CartProvider } from '@/context/CartContext'
  */
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://audit-ai-vercel.app'),
   title: {
     default: 'AuditAI — AI-Powered Website Intelligence Platform',
     template: '%s | AuditAI by Yample Labs',
