@@ -546,8 +546,8 @@ export default function LandingPage() {
                       { from: 'bot', msg: 'Hello! 👋 Welcome to Yample Labs. How can I help you today?' },
                       { from: 'user', msg: 'I need a new website for my restaurant.' },
                       { from: 'bot', msg: 'Great choice! 🍕 We build beautiful restaurant websites with online menus, booking, and WhatsApp ordering. Can I grab your details to prepare a custom quote?' },
-                      { from: 'user', msg: 'Sure, my name is Rahul.' },
-                      { from: 'bot', msg: '✅ Thanks Rahul! I\'ve created a lead profile for you. A specialist from Yample Labs will reach out within 24 hours. Meanwhile, would you like to start a free website audit?' },
+                      { from: 'user', msg: 'Sure, my name is Alex.' },
+                      { from: 'bot', msg: '✅ Thanks Alex! I\'ve created a lead profile for you. A specialist from Yample Labs will reach out within 24 hours. Meanwhile, would you like to start a free website audit?' },
                     ].map((m, i) => (
                       <div key={i} className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div

@@ -25,12 +25,12 @@ interface Lead {
 const MOCK_LEADS: Lead[] = [
   {
     id: '1',
-    name: 'Rahul Sharma',
+    name: 'Alex Vance',
     business: 'TechMart Solutions',
-    email: 'rahul@techmart.in',
-    phone: '+91 98765 43210',
-    instagram: '@rahulsharma',
-    website: 'techmart.in',
+    email: 'alex@techmart.com',
+    phone: '+1 555 234 5678',
+    instagram: '@alexvance',
+    website: 'techmart.com',
     services: 'Website Upgrade, AI Customer Assistant',
     total: 1099,
     discount: 110,
