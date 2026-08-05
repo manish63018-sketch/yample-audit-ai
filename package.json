@@ -6,9 +6,9 @@
     "zod": "^4.29.12"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "npm run dev --prefix apps/web",
+    "build": "npm run build --prefix apps/web",
+    "start": "npm run start --prefix apps/web",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook -o storybook-static",
     "lint": "eslint . --ext .ts,.tsx,.js --max-warnings=0",
