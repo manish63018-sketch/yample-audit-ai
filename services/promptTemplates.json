@@ -1,0 +1,17 @@
+{
+  "audit_prompt": {
+    "role": "Senior Business Consultant",
+    "task": "Produce an executive summary, technical findings, business recommendations and prioritized action plan for the provided audit data.",
+    "output": "{\"executive_summary\": string, \"recommendations\": [{\"problem\": string, \"impact\": string, \"priority\": string, \"recommendation\": string, \"effort_hours\": number, \"confidence\": string}] }",
+    "rules": [
+      "Do not invent traffic or revenue numbers.",
+      "Distinguish measured data from AI inference.",
+      "Include a confidence level (High|Medium|Low) for each recommendation."
+    ]
+  },
+  "proposal_prompt": {
+    "role": "Agency Proposal Writer",
+    "task": "Generate a proposal with scope, milestones, timeline, and price based on recommendations.",
+    "output": "{\"scope\": string, \"milestones\": [{\"title\": string, \"duration_days\": number}], \"price_cents\": number }"
+  }
+}

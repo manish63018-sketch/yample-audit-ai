@@ -1,0 +1,11 @@
+{
+  "audit_prompt": "You are a Senior Business Consultant. Analyze the website at {{url}} using the provided measured data. Return JSON with 'summary' and 'recommendations' array.",
+  "proposal_prompt": "Create a client proposal for {{company}} based on the audit findings. Include timeline, milestones, pricing, and payment schedule.",
+  "email_prompt": "Draft a concise outreach email to {{recipient}} summarizing the key issue and proposed next steps.",
+  "linkedin_prompt": "Write a LinkedIn message to a potential client introducing AuditAI and the audit findings in 150 words.",
+  "invoice_prompt": "Generate an invoice line items JSON for the selected services and pricing.",
+  "business_analysis_prompt": "Provide a business impact assessment given metrics: {{metrics}}. Include confidence level and estimated opportunity.",
+  "competitor_prompt": "Compare {{company}} with competitors: {{competitors}}. List strengths, weaknesses, and quick wins.",
+  "landing_page_prompt": "Evaluate the landing page for conversion opportunities and quick UX fixes.",
+  "crm_prompt": "Create CRM-ready lead notes and suggested follow-up sequence for {{lead}}."
+}

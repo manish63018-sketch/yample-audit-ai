@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   AuditAI Design System — Global CSS
+   Design tokens from docs/02-UI-UX-Blueprint.md
+   Dark-first, WCAG AA compliant
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* Color tokens — dark theme is default */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4.8% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 4.8% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 217 91% 60%;
+    --radius: 0.625rem;
+
+    /* Brand gradient */
+    --gradient-brand: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    --gradient-subtle: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+
+    /* Dot pattern for backgrounds */
+    --dot-size: 1px;
+    --dot-space: 22px;
+    --dot-color: rgba(255, 255, 255, 0.07);
+  }
+
+  * {
+    border-color: theme('colors.border.DEFAULT');
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: #09090B;
+    color: #FAFAFA;
+    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Typography scale */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: #FAFAFA;
+  }
+
+  h1 { font-size: clamp(2.25rem, 5vw, 4.5rem); }
+  h2 { font-size: clamp(1.75rem, 4vw, 3rem); }
+  h3 { font-size: clamp(1.25rem, 3vw, 1.875rem); }
+  h4 { font-size: 1.25rem; }
+
+  p {
+    color: #A1A1AA;
+    line-height: 1.7;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Focus styles — accessible, visible */
+  :focus-visible {
+    outline: 2px solid #2563EB;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #09090B;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #3F3F46;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #52525B;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(37, 99, 235, 0.3);
+    color: #FAFAFA;
+  }
+}
+
+@layer components {
+  /* =====================
+     Background patterns
+     ===================== */
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, var(--dot-color) var(--dot-size), transparent var(--dot-size));
+    background-size: var(--dot-space) var(--dot-space);
+  }
+
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* =====================
+     Glass morphism
+     ===================== */
+  .glass {
+    background: rgba(24, 24, 27, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(63, 63, 70, 0.6);
+  }
+
+  .glass-subtle {
+    background: rgba(24, 24, 27, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(63, 63, 70, 0.4);
+  }
+
+  /* =====================
+     Gradient text
+     ===================== */
+  .gradient-text {
+    background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-brand {
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* =====================
+     Skeleton shimmer
+     ===================== */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: #27272A;
+    border-radius: var(--radius);
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  /* =====================
+     Score indicator colors
+     ===================== */
+  .score-excellent { color: #22C55E; }
+  .score-good      { color: #84CC16; }
+  .score-average   { color: #F59E0B; }
+  .score-poor      { color: #EF4444; }
+
+  /* =====================
+     Audit status colors
+     ===================== */
+  .status-queued    { color: #A1A1AA; }
+  .status-running   { color: #60A5FA; }
+  .status-completed { color: #22C55E; }
+  .status-failed    { color: #EF4444; }
+
+  /* =====================
+     Section spacing
+     ===================== */
+  .section {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+
+  @media (max-width: 768px) {
+    .section {
+      padding-top: 4rem;
+      padding-bottom: 4rem;
+    }
+  }
+}
+
+@layer utilities {
+  /* Glow effects */
+  .glow-brand {
+    box-shadow: 0 0 24px 0 rgba(37, 99, 235, 0.3);
+  }
+
+  .glow-brand-sm {
+    box-shadow: 0 0 12px 0 rgba(37, 99, 235, 0.2);
+  }
+
+  /* Text balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Prevent layout shifts */
+  .contain-layout {
+    contain: layout;
+  }
+}

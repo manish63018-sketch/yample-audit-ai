@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+apps/web/.next/
+*.zip
+.env
+.env.local
+.env.*.local
+/.idea
+.vscode
+coverage/
+storybook-static/
+*.log
+/.DS_Store

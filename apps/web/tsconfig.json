@@ -1,0 +1,64 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@modules/*": [
+        "../../modules/*"
+      ],
+      "@auditai/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@auditai/db": [
+        "../../packages/db/src/index.ts"
+      ],
+      "@auditai/ai": [
+        "../../packages/ai/src/index.ts"
+      ],
+      "@lead-ingest/*": [
+        "../../modules/lead-ingest/*"
+      ],
+      "@pdf/*": [
+        "../../modules/pdf/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../modules/audit/**/*.ts",
+    "../../modules/lead-ingest/**/*.ts",
+    "../../modules/pdf/**/*.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

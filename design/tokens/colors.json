@@ -1,0 +1,32 @@
+{
+  "colors": {
+    "primary": "#2563EB",
+    "success": "#22C55E",
+    "warning": "#F59E0B",
+    "danger": "#EF4444",
+    "background": "#09090B",
+    "card": "#18181B",
+    "border": "#27272A",
+    "textPrimary": "#FAFAFA",
+    "textSecondary": "#A1A1AA"
+  },
+  "semantic": {
+    "bg": "var(--color-background)",
+    "surface": "var(--color-card)",
+    "muted": "var(--color-textSecondary)",
+    "border": "var(--color-border)",
+    "accent": "var(--color-primary)"
+  },
+  "modes": {
+    "dark": {
+      "background": "#09090B",
+      "textPrimary": "#FAFAFA"
+    },
+    "light": {
+      "background": "#F8FAFC",
+      "textPrimary": "#0F172A",
+      "card": "#FFFFFF",
+      "border": "#E6EEF8"
+    }
+  }
+}
