@@ -13,13 +13,14 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState({ name: '', business: '', email: '', phone: '', instagram: '', company: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [payingStripe, setPayingStripe] = useState(false)
   const [error, setError] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitProposal = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name || !form.email || !form.phone) { setError('Please fill in name, email, and phone.'); return }
     setSubmitting(true)
@@ -34,7 +35,7 @@ export default function CheckoutPage() {
           services: items.map(i => i.name).join(', '),
           total: finalTotal,
           discount,
-          source: 'checkout',
+          source: 'checkout_proposal',
         }),
       })
       clearCart()
@@ -43,6 +44,36 @@ export default function CheckoutPage() {
       setError('Something went wrong. Please try again or email us directly.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleStripeCheckout = async () => {
+    if (!form.name || !form.email) { setError('Please fill in at least your Name and Email for online checkout.'); return }
+    setPayingStripe(true)
+    setError('')
+
+    try {
+      const res = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items,
+          customerEmail: form.email,
+          discount,
+          discountLabel,
+        }),
+      })
+      const data = await res.json()
+      if (data.success && data.url) {
+        clearCart()
+        window.location.href = data.url
+      } else {
+        setError(data.error || 'Failed to initialize Stripe checkout.')
+      }
+    } catch {
+      setError('Stripe connection error. Please try again.')
+    } finally {
+      setPayingStripe(false)
     }
   }
 
@@ -92,10 +123,10 @@ export default function CheckoutPage() {
             <div className="text-xs font-semibold text-violet-300 mb-3">What Happens After You Submit</div>
             <div className="space-y-2">
               {[
-                '✅ You receive a confirmation email',
-                '📞 Our team contacts you within 24 hours',
-                '📄 Full proposal sent to your inbox',
-                '🚀 Project kickoff scheduled',
+                '✅ Instant email confirmation',
+                '📞 Team reaches out within 24 hours',
+                '📄 Formal proposal with scope & deliverables',
+                '🚀 Kickoff call scheduled at your convenience',
               ].map((s, i) => (
                 <div key={i} className="text-xs text-white/50">{s}</div>
               ))}
@@ -103,10 +134,10 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* Right: Form */}
+        {/* Right: Form & Options */}
         <div>
           <h2 className="text-xl font-bold text-white mb-4">Your Details</h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmitProposal} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-white/40 mb-1">Full Name *</label>
@@ -136,14 +167,26 @@ export default function CheckoutPage() {
               <textarea name="message" value={form.message} onChange={handleChange} rows={3} placeholder="Tell us about your business goals, timeline requirements, or any specific requests..." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors resize-none" />
             </div>
             {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={submitting || items.length === 0}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-base hover:opacity-90 transition-all shadow-xl shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? '⏳ Sending...' : '🚀 Submit Project Summary'}
-            </button>
-            <p className="text-xs text-white/20 text-center">No payment required. We will contact you within 24 hours.</p>
+
+            <div className="pt-2 space-y-3">
+              <button
+                type="submit"
+                disabled={submitting || payingStripe || items.length === 0}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-base hover:opacity-90 transition-all shadow-xl shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? '⏳ Submitting...' : '📄 Request Free Proposal'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStripeCheckout}
+                disabled={submitting || payingStripe || items.length === 0}
+                className="w-full py-3.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 font-bold text-base hover:bg-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {payingStripe ? '⏳ Connecting to Stripe...' : '💳 Pay Online via Stripe →'}
+              </button>
+            </div>
+            <p className="text-xs text-white/20 text-center">No risk. Proposal option requires 0 payment upfront.</p>
           </form>
         </div>
       </div>
