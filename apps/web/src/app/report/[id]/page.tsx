@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { AIRecommendationPopup } from '@/components/journey/AIRecommendationPopup'
@@ -31,7 +31,7 @@ const OVERALL = Math.round(Object.values(MOCK_SCORES).reduce((a, b) => a + b, 0)
 
 type Tab = 'overview' | 'issues' | 'solutions' | 'business'
 
-export default function ReportPage({ params }: { params: { id: string } }) {
+function ReportContent({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams()
   const url = searchParams.get('url') ?? 'yourwebsite.com'
   const [showPopup, setShowPopup] = useState(false)
@@ -304,5 +304,13 @@ export default function ReportPage({ params }: { params: { id: string } }) {
         />
       )}
     </div>
+  )
+}
+
+export default function ReportPage({ params }: { params: { id: string } }) {
+  return (
+    <Suspense fallback={<div className="text-center p-12 text-white/50">Loading report...</div>}>
+      <ReportContent params={params} />
+    </Suspense>
   )
 }

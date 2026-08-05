@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LogIn, AlertCircle } from 'lucide-react'
@@ -9,7 +9,7 @@ import { Input, Field } from '@/components/ui/input'
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card'
 import { useAuth } from '@/providers/auth-provider'
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -119,5 +119,13 @@ export default function LoginPage() {
         </Link>
       </CardFooter>
     </Card>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="text-center p-8 text-white/50">Loading login...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }
