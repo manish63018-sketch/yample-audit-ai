@@ -156,40 +156,31 @@ function ReportContent({ params }: { params: { id: string } }) {
               </p>
             </div>
 
-            {/* Overall Score Badge */}
-            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-              <div className="relative flex items-center justify-center w-20 h-20">
-                <svg className="w-20 h-20 transform -rotate-90">
-                  <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" className="text-white/10" fill="transparent" />
-                  <circle
-                    cx="40"
-                    cy="40"
-                    r="34"
-                    stroke={getScoreColor(scores.overall)}
-                    strokeWidth="6"
-                    strokeDasharray={213}
-                    strokeDashoffset={213 - (213 * scores.overall) / 100}
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                </svg>
-                <span className="absolute text-2xl font-black" style={{ color: getScoreColor(scores.overall) }}>
-                  {scores.overall}
-                </span>
+            {/* Dual Core Scores & Overall Audit Score */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+              <div className="text-center p-3 border-r border-white/10 last:border-r-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">⭐ Overall Audit Score</div>
+                <div className="text-3xl font-black text-violet-400 my-1">{scores.overall}<span className="text-xs text-slate-500 font-normal">/100</span></div>
+                <div className="text-[10px] text-slate-400">Weighted composite</div>
               </div>
-              <div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Health</div>
-                <div className="text-sm font-extrabold text-white">
-                  {scores.overall >= 80 ? 'Optimal Performance' : scores.overall >= 60 ? 'Moderate Technical Debt' : 'Critical Fixes Needed'}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">{crawl.totalPagesCrawled} pages analyzed</div>
+
+              <div className="text-center p-3 border-r border-white/10 last:border-r-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🔧 Technical Health</div>
+                <div className="text-3xl font-black text-emerald-400 my-1">{scores.technicalHealth || Math.round(scores.performance * 0.4 + scores.seo * 0.3 + scores.accessibility * 0.15 + scores.security * 0.15)}<span className="text-xs text-slate-500 font-normal">/100</span></div>
+                <div className="text-[10px] text-emerald-300 font-medium">Automated analysis</div>
+              </div>
+
+              <div className="text-center p-3">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📈 Business Growth</div>
+                <div className="text-3xl font-black text-amber-400 my-1">{scores.businessGrowth || Math.round(scores.business * 0.6 + scores.ux * 0.4)}<span className="text-xs text-slate-500 font-normal">/100</span></div>
+                <div className="text-[10px] text-amber-300 font-medium">AI-Assisted conversion</div>
               </div>
             </div>
           </div>
 
           {/* Technology Pills */}
           <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-400 font-semibold mr-2">Detected Tech:</span>
+            <span className="text-slate-400 font-semibold mr-2">Detected Stack:</span>
             {system.detectedTechnologies.map((tech: string) => (
               <span key={tech} className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300 font-mono text-[11px]">
                 {tech}
@@ -198,21 +189,26 @@ function ReportContent({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* 5 Core Score Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        {/* 5 Core Score Cards with Transparency Confidence Badges */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {[
-            { label: 'Performance', score: scores.performance, icon: '⚡', color: '#10b981' },
-            { label: 'SEO Signal', score: scores.seo, icon: '🔍', color: '#6366f1' },
-            { label: 'Security', score: scores.security, icon: '🛡️', color: '#f59e0b' },
-            { label: 'Accessibility', score: scores.accessibility, icon: '♿', color: '#3b82f6' },
-            { label: 'Business Score', score: scores.business, icon: '📈', color: '#ec4899' },
+            { label: 'Performance', score: scores.performance, icon: '⚡', color: '#10b981', confidence: '✅ High Confidence (measured)' },
+            { label: 'SEO Signal', score: scores.seo, icon: '🔍', color: '#6366f1', confidence: '✅ High Confidence (measured)' },
+            { label: 'Accessibility', score: scores.accessibility, icon: '♿', color: '#3b82f6', confidence: '✅ High Confidence (measured)' },
+            { label: 'Security', score: scores.security, icon: '🛡️', color: '#f59e0b', confidence: '✅ High Confidence (measured)' },
+            { label: 'Business Conversion', score: scores.business, icon: '📈', color: '#ec4899', confidence: '🤖 AI-Assisted Insights' },
           ].map((card) => (
-            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center">
-              <div className="text-2xl mb-1">{card.icon}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</div>
-              <div className="text-3xl font-black my-2" style={{ color: card.color }}>
-                {card.score}
-                <span className="text-xs text-slate-500 font-normal">/100</span>
+            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center flex flex-col justify-between">
+              <div>
+                <div className="text-2xl mb-1">{card.icon}</div>
+                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{card.label}</div>
+                <div className="text-3xl font-black my-2" style={{ color: card.color }}>
+                  {card.score}
+                  <span className="text-xs text-slate-500 font-normal">/100</span>
+                </div>
+              </div>
+              <div className="text-[10px] font-mono py-1 px-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 mt-2">
+                {card.confidence}
               </div>
             </div>
           ))}

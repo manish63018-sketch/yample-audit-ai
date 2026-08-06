@@ -193,6 +193,8 @@ export interface SmartQuoteResult {
 
 export interface AuditScores {
   overall: number
+  technicalHealth: number
+  businessGrowth: number
   performance: number
   seo: number
   accessibility: number
@@ -200,6 +202,14 @@ export interface AuditScores {
   ux: number
   business: number
   mobile: number
+  confidence?: {
+    performance: string
+    seo: string
+    accessibility: string
+    security: string
+    ux: string
+    business: string
+  }
 }
 
 export interface AuditRunPayload {

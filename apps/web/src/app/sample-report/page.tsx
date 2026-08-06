@@ -50,7 +50,7 @@ export default function SampleReportPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Banner */}
+        {/* Banner with Dual Core Scores */}
         <div className="glass-card p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/20 via-slate-900 to-slate-950 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3">
@@ -58,33 +58,46 @@ export default function SampleReportPage() {
             </div>
             <h1 className="text-3xl font-extrabold text-white">yampleauditai.vercel.app</h1>
             <p className="text-xs text-slate-400 mt-1">
-              Sample Report | Tech Stack: Next.js, React, Vercel, Cloudflare, Tailwind CSS
+              Sample Enterprise Report | Stack: Next.js, React, Vercel, Cloudflare, Tailwind CSS
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-            <div className="text-5xl font-black text-emerald-400">{overallScore}</div>
-            <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Health</div>
-              <div className="text-sm font-extrabold text-emerald-400">Optimal Performance</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">33 pages analyzed</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+            <div className="text-center p-2 border-r border-white/10 last:border-r-0">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">⭐ Overall Audit</div>
+              <div className="text-3xl font-black text-violet-400 my-1">94<span className="text-xs text-slate-500 font-normal">/100</span></div>
+              <div className="text-[10px] text-slate-400">Weighted composite</div>
+            </div>
+
+            <div className="text-center p-2 border-r border-white/10 last:border-r-0">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🔧 Technical Health</div>
+              <div className="text-3xl font-black text-emerald-400 my-1">95<span className="text-xs text-slate-500 font-normal">/100</span></div>
+              <div className="text-[10px] text-emerald-300 font-medium">Automated analysis</div>
+            </div>
+
+            <div className="text-center p-2">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📈 Business Growth</div>
+              <div className="text-3xl font-black text-amber-400 my-1">93<span className="text-xs text-slate-500 font-normal">/100</span></div>
+              <div className="text-[10px] text-amber-300 font-medium">AI-Assisted conversion</div>
             </div>
           </div>
         </div>
 
-        {/* 5 Core Score Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        {/* 5 Core Score Cards with Confidence Badges */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {SCORES.map((card) => (
-            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center">
-              <div className="text-2xl mb-1">{card.icon}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</div>
-              <div className="text-3xl font-black my-2 text-emerald-400">
-                {card.score}
-                <span className="text-xs text-slate-500 font-normal">/100</span>
+            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center flex flex-col justify-between">
+              <div>
+                <div className="text-2xl mb-1">{card.icon}</div>
+                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{card.label}</div>
+                <div className="text-3xl font-black my-2 text-emerald-400">
+                  {card.score}
+                  <span className="text-xs text-slate-500 font-normal">/100</span>
+                </div>
               </div>
-              <span className="text-[10px] font-semibold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                {card.grade}
-              </span>
+              <div className="text-[10px] font-mono py-1 px-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 mt-2">
+                {card.label === 'Business' ? '🤖 AI-Assisted Insights' : '✅ High Confidence (measured)'}
+              </div>
             </div>
           ))}
         </div>
