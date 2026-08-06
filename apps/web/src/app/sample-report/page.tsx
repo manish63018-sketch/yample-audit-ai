@@ -1,43 +1,62 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { CheckCircle2, Zap, Search, ShieldCheck, BarChart3, TrendingUp, ArrowRight } from 'lucide-react'
+import { AIWebsiteSimulator } from '@/components/report/AIWebsiteSimulator'
+import {
+  CheckCircle2,
+  XCircle,
+  TrendingUp,
+  ArrowRight,
+  Sparkles,
+  DollarSign,
+  Rocket,
+  Clock,
+  Check,
+} from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Sample Audit Report | AuditAI by Yample Labs',
-  description: 'See a real AuditAI enterprise report — 94+ health score, Core Web Vitals, SEO, security, accessibility, and Gemini AI business roadmap.',
+  title: 'Sample Enterprise Growth Report | AuditAI by Yample Labs',
+  description: 'See a real AuditAI business opportunity report — revenue uplift, AI website simulator, delivery timeline, and instant quote.',
 }
 
-const SCORES = [
-  { label: 'Performance', score: 96, color: '#10b981', grade: 'Optimal', icon: '⚡' },
-  { label: 'SEO', score: 95, color: '#10b981', grade: 'Optimal', icon: '🔍' },
-  { label: 'Security', score: 92, color: '#10b981', grade: 'Optimal', icon: '🛡️' },
-  { label: 'Accessibility', score: 94, color: '#10b981', grade: 'Optimal', icon: '♿' },
-  { label: 'Business', score: 93, color: '#10b981', grade: 'Optimal', icon: '📈' },
+const BIGGEST_PROBLEMS = [
+  { text: "Visitors don't contact you easily (No prominent lead CTA)", impact: 'High Bounce Rate' },
+  { text: 'No Automated Lead Capture System', impact: 'Lost Prospect Inquiries' },
+  { text: 'No 24/7 AI Customer Support / Chat Bot', impact: 'After-Hours Drop-off' },
+  { text: 'Weak Call-To-Action Above the Fold', impact: '-34% Conversion Penalty' },
+  { text: 'Slow Mobile Response on Cellular Networks', impact: 'Mobile User Loss' },
+  { text: 'Missing Trust Elements & Client Testimonials', impact: 'Low Conversion Authority' },
 ]
 
-const OPTIMIZATIONS = [
-  { sev: 'passed', icon: '✅', cat: 'Performance', title: 'Core Web Vitals Optimal (LCP: 1.4s, CLS: 0.02, FCP: 0.9s)', impact: 'HIGH: Sub-1.5s instant page loading delivers maximum user retention.', fix: 'WebP image compression, CDN edge caching, and next/font swap enabled.' },
-  { sev: 'passed', icon: '✅', cat: 'SEO', title: 'On-Page Meta & Schema Markup Fully Validated', impact: 'HIGH: Maximum SERP authority and Google rich snippet indexing.', fix: 'Canonical tags, OpenGraph images, and JSON-LD Organization Schema configured.' },
-  { sev: 'passed', icon: '✅', cat: 'Security', title: 'HSTS & Content Security Policy (CSP) Hardened', impact: 'HIGH: Strict transport security and XSS attack prevention.', fix: 'HSTS max-age=31536000 and frame-ancestors DENY configured.' },
-  { sev: 'passed', icon: '✅', cat: 'Accessibility', title: 'WCAG AA Compliant (<html lang>, ARIA Landmarks & Contrast)', impact: 'HIGH: Screen reader accessible and skip navigation enabled.', fix: 'All form controls labelled, focusable skip-links active.' },
-  { sev: 'passed', icon: '✅', cat: 'Business', title: 'AI Customer Assistant & Conversion Path Active', impact: 'HIGH: 24/7 lead intake & automated project calculator enabled.', fix: 'Smart quote mapper and cart discount system integrated.' },
+const BEFORE_AFTER = [
+  { feature: 'Hero CTA & Value Proposition', before: '❌ Generic', after: '✅ High Converting' },
+  { feature: 'Lead Contact & Intake Form', before: '❌ Basic Mailto Link', after: '✅ Smart Lead Qualifier' },
+  { feature: 'Automated Booking System', before: '❌ None', after: '✅ Instant Calendar Sync' },
+  { feature: '24/7 AI Customer Assistant', before: '❌ None', after: '✅ Live Voice & Chat Bot' },
+  { feature: 'Search Visibility (SEO Score)', before: '60 / 100', after: '92 / 100' },
 ]
 
-const RECOMMENDATIONS = [
-  { priority: 1, title: '24/7 AI Customer Assistant & Lead Qualifier', desc: 'Deploy an automated AI chatbot trained on your business to capture inquiries after hours and answer customer questions instantly.', service: 'AI Automation', price: 199, timeline: '7 days', match: 98 },
-  { priority: 2, title: 'Lead CRM & Pipeline Management', desc: 'Centralized lead management dashboard with automated email notifications, status tracking, and lead qualification.', service: 'CRM System', price: 249, timeline: '10 days', match: 92 },
-  { priority: 3, title: 'Monthly SEO Strategy & Rank Tracking', desc: 'Ongoing keyword tracking, competitor monitoring, monthly content recommendations, and Search Console reporting.', service: 'Monthly SEO', price: 99, timeline: 'Monthly', match: 89 },
+const TIMELINE_STEPS = [
+  { day: 'Day 1', phase: 'Planning & Strategy', desc: 'Requirements, content architecture & wireframing.' },
+  { day: 'Day 2', phase: 'UI/UX Design', desc: 'Custom high-converting Framer/Stripe aesthetic design.' },
+  { day: 'Day 4', phase: 'Development', desc: 'Next.js 16 build, Core Web Vitals optimization.' },
+  { day: 'Day 7', phase: 'Testing & QA', desc: 'Security hardening, accessibility & mobile QA.' },
+  { day: 'Day 8', phase: 'Launch & Deployment', desc: 'Vercel edge deployment & Search Console submission.' },
+]
+
+const MONTHLY_ROADMAP = [
+  { month: 'Month 1', title: 'Launch High-Converting Website', desc: 'Deploy redesigned sub-1.5s website with instant lead forms.' },
+  { month: 'Month 2', title: 'SEO & Search Engine Growth', desc: 'Index schema tags, optimize target keywords, rank on Google.' },
+  { month: 'Month 3', title: 'AI Automation & Voice Bot', desc: 'Deploy 24/7 AI assistant to qualify inquiries automatically.' },
+  { month: 'Month 4', title: 'Scale Revenue & Business', desc: 'Expand content funnel, retarget leads, optimize ROI.' },
 ]
 
 export default function SampleReportPage() {
-  const overallScore = Math.round(SCORES.reduce((s, i) => s + i.score, 0) / SCORES.length)
-
   return (
     <div className="min-h-screen bg-[#08080f] text-white">
       {/* Header */}
-      <div className="border-b border-white/5 px-6 py-3 flex items-center justify-between max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
-          <span>🔍</span> <span className="font-semibold">AuditAI</span>
+      <div className="border-b border-white/5 px-6 py-3.5 flex items-center justify-between max-w-7xl mx-auto">
+        <Link href="/" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-semibold">
+          <span>🔍</span> <span>AuditAI</span> <span className="text-xs text-violet-400 font-normal">by Yample Labs</span>
         </Link>
         <div className="text-xs text-slate-400 font-mono hidden md:block">
           Sample Enterprise Report: <span className="text-violet-300 font-semibold">yampleauditai.vercel.app</span>
@@ -49,103 +68,229 @@ export default function SampleReportPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Banner with Dual Core Scores */}
-        <div className="glass-card p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/20 via-slate-900 to-slate-950 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Certified High Health Score
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+        {/* HERO BANNER: Your Website Can Grow More */}
+        <div className="glass-card p-8 md:p-10 rounded-3xl border border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-slate-900 to-slate-950 relative overflow-hidden">
+          <div className="max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Certified Enterprise Sample Report
             </div>
-            <h1 className="text-3xl font-extrabold text-white">yampleauditai.vercel.app</h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Sample Enterprise Report | Stack: Next.js, React, Vercel, Cloudflare, Tailwind CSS
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+              Your Website Can Grow More. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-300 to-emerald-400">Here’s Exactly How.</span>
+            </h1>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              We performed an automated technical scan and AI business analysis of <span className="text-violet-300 font-mono font-semibold">yampleauditai.vercel.app</span>. Here are the exact growth bottlenecks and revenue opportunities.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-            <div className="text-center p-2 border-r border-white/10 last:border-r-0">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">⭐ Overall Audit</div>
-              <div className="text-3xl font-black text-violet-400 my-1">94<span className="text-xs text-slate-500 font-normal">/100</span></div>
-              <div className="text-[10px] text-slate-400">Weighted composite</div>
-            </div>
-
-            <div className="text-center p-2 border-r border-white/10 last:border-r-0">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🔧 Technical Health</div>
-              <div className="text-3xl font-black text-emerald-400 my-1">95<span className="text-xs text-slate-500 font-normal">/100</span></div>
-              <div className="text-[10px] text-emerald-300 font-medium">Automated analysis</div>
-            </div>
-
-            <div className="text-center p-2">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📈 Business Growth</div>
-              <div className="text-3xl font-black text-amber-400 my-1">93<span className="text-xs text-slate-500 font-normal">/100</span></div>
-              <div className="text-[10px] text-amber-300 font-medium">AI-Assisted conversion</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 5 Core Score Cards with Confidence Badges */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {SCORES.map((card) => (
-            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center flex flex-col justify-between">
+          {/* 🟢 Website Health Indicator */}
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-3 bg-white/5 px-5 py-3 rounded-2xl border border-white/10">
+              <span className="w-3 h-3 rounded-full bg-emerald-400" />
               <div>
-                <div className="text-2xl mb-1">{card.icon}</div>
-                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{card.label}</div>
-                <div className="text-3xl font-black my-2 text-emerald-400">
-                  {card.score}
-                  <span className="text-xs text-slate-500 font-normal">/100</span>
-                </div>
-              </div>
-              <div className="text-[10px] font-mono py-1 px-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 mt-2">
-                {card.label === 'Business' ? '🤖 AI-Assisted Insights' : '✅ High Confidence (measured)'}
+                <div className="text-[10px] uppercase font-bold text-slate-400">Website Health</div>
+                <div className="text-lg font-black text-emerald-400">Excellent (92%)</div>
               </div>
             </div>
-          ))}
+            <p className="text-xs text-slate-400 max-w-md">
+              Your website is technically fast and secure. Improving conversion pathways, lead forms, and AI support will unlock maximum revenue.
+            </p>
+          </div>
         </div>
 
-        {/* Technical Checks & Audit Results */}
-        <div className="glass-card p-6 rounded-2xl border border-white/10 mb-8 space-y-4">
-          <h2 className="text-lg font-bold text-white mb-2">Automated Audit & Diagnostic Results</h2>
-          <div className="space-y-3">
-            {OPTIMIZATIONS.map((opt, idx) => (
-              <div key={idx} className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">{opt.title}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase">
-                      {opt.cat}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 mt-1">{opt.impact}</p>
-                  <div className="text-[11px] text-slate-400 mt-1 font-mono">Solution: {opt.fix}</div>
+        {/* 💰 SECTION 1: REVENUE OPPORTUNITY */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-emerald-400" /> Estimated Revenue Opportunity
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="glass-card p-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-center">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estimated Lost Leads</div>
+              <div className="text-4xl font-black text-amber-400 my-2">148 <span className="text-xs text-slate-500 font-normal">/ month</span></div>
+              <div className="text-[11px] text-amber-300">Visitors leaving without inquiring</div>
+            </div>
+
+            <div className="glass-card p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-center">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Potential Monthly Gain</div>
+              <div className="text-4xl font-black text-emerald-400 my-2">$3,400 <span className="text-xs text-slate-500 font-normal">/ month</span></div>
+              <div className="text-[11px] text-emerald-300">Estimated incremental business revenue</div>
+            </div>
+
+            <div className="glass-card p-6 rounded-2xl border border-violet-500/20 bg-violet-500/5 text-center">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Growth Potential</div>
+              <div className="text-4xl font-black text-violet-400 my-2">HIGH</div>
+              <div className="text-[11px] text-violet-300">Based on industry conversion benchmarks</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 🔥 SECTION 2: BIGGEST PROBLEMS (BUSINESS LANGUAGE) */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <div>
+            <h2 className="text-2xl font-black text-white flex items-center gap-2">
+              <XCircle className="w-6 h-6 text-red-400" /> Key Growth Bottlenecks Identified
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">Direct business bottlenecks impacting your visitor conversion right now.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {BIGGEST_PROBLEMS.map((prob, idx) => (
+              <div key={idx} className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-start gap-3">
+                <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-200">{prob.text}</span>
+                  <span className="text-[10px] font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 shrink-0">
+                    {prob.impact}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Growth Roadmap & Recommendations */}
-        <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-4">
-          <h2 className="text-lg font-bold text-white mb-2">AI Revenue Growth Recommendations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {RECOMMENDATIONS.map((rec) => (
-              <div key={rec.service} className="p-5 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col justify-between">
+        {/* 🤖 SECTION 3: AI REVENUE PROJECTION */}
+        <div className="glass-card p-8 rounded-3xl border border-violet-500/20 bg-violet-950/20 space-y-6">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-6 h-6 text-violet-400" />
+            <div>
+              <h2 className="text-xl font-bold text-white">AI Revenue Projection Analysis</h2>
+              <p className="text-xs text-slate-400">Expected improvements after redesign and AI integration.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-emerald-400">+35%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">More Leads</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-indigo-400">+18%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">Faster Load Time</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-violet-400">+42%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">Better Mobile UX</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-teal-400">+60%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">Customer Trust</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ⚡ SECTION 4: BEFORE / AFTER TRANSFORMATION GRID */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" /> Before vs. Future Transformation
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 text-slate-400 font-bold uppercase">
+                  <th className="py-3 px-4">Website Component</th>
+                  <th className="py-3 px-4 text-red-400">Current State</th>
+                  <th className="py-3 px-4 text-emerald-400">Future Redesigned State</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {BEFORE_AFTER.map((row) => (
+                  <tr key={row.feature} className="hover:bg-white/[0.02]">
+                    <td className="py-3.5 px-4 font-semibold text-white">{row.feature}</td>
+                    <td className="py-3.5 px-4 text-red-300">{row.before}</td>
+                    <td className="py-3.5 px-4 text-emerald-300 font-bold">{row.after}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 🎨 SECTION 5: PROPRIETARY AI WEBSITE SIMULATOR */}
+        <AIWebsiteSimulator url="yampleauditai.vercel.app" category="Enterprise Business" />
+
+        {/* 🗓️ SECTION 6: DELIVERY TIMELINE */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Clock className="w-5 h-5 text-violet-400" /> 8-Day Turnaround Delivery Timeline
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">Step-by-step execution path from project kickoff to live deployment.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {TIMELINE_STEPS.map((step) => (
+              <div key={step.day} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-violet-300">Priority #{rec.priority}</span>
-                    <span className="text-xs font-extrabold text-emerald-400">${rec.price}</span>
-                  </div>
-                  <h3 className="text-sm font-bold text-white mb-1">{rec.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed mb-4">{rec.desc}</p>
+                  <span className="text-[10px] font-extrabold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20">
+                    {step.day}
+                  </span>
+                  <div className="text-xs font-bold text-white mt-2 mb-1">{step.phase}</div>
+                  <div className="text-[11px] text-slate-400 leading-tight">{step.desc}</div>
                 </div>
-                <Link
-                  href="/audit"
-                  className="w-full py-2.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 font-semibold text-xs text-center transition-all"
-                >
-                  Configure For Your Business →
-                </Link>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* 📈 SECTION 7: MONTHLY BUSINESS ROADMAP */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-emerald-400" /> Month-by-Month Business Growth Roadmap
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {MONTHLY_ROADMAP.map((m) => (
+              <div key={m.month} className="p-5 rounded-2xl bg-gradient-to-b from-white/5 to-transparent border border-white/10">
+                <span className="text-xs font-bold text-emerald-400 font-mono">{m.month}</span>
+                <h3 className="text-sm font-bold text-white my-1">{m.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{m.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 💰 SECTION 8: INSTANT QUOTE & MONEY SECTION */}
+        <div className="glass-card p-8 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-slate-950 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Tailored Package Quotation</span>
+              <h2 className="text-2xl font-black text-white mt-1">Recommended Growth Package</h2>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-slate-400 line-through">$897 regular subtotal</div>
+              <div className="text-3xl font-black text-emerald-400">$837 <span className="text-xs text-slate-400 font-normal">($60 Bundle Discount)</span></div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs py-2 border-b border-white/5">
+              <span className="font-semibold text-white">Business Website Redesign Package</span>
+              <span className="font-mono text-slate-300">$599</span>
+            </div>
+            <div className="flex justify-between items-center text-xs py-2 border-b border-white/5">
+              <span className="font-semibold text-white">24/7 AI Customer Assistant & Voice Agent</span>
+              <span className="font-mono text-slate-300">$199</span>
+            </div>
+            <div className="flex justify-between items-center text-xs py-2 border-b border-white/5">
+              <span className="font-semibold text-white">Monthly Search Engine & Keyword Setup</span>
+              <span className="font-mono text-slate-300">$99</span>
+            </div>
+            <div className="flex justify-between items-center text-xs py-2 text-emerald-400 font-semibold">
+              <span>Bundle Discount Savings</span>
+              <span>-$60</span>
+            </div>
+          </div>
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs text-slate-400">
+              ⚡ 8-Day Turnaround | 100% Satisfaction Guarantee | Dedicated Project Manager
+            </div>
+            <Link
+              href="/audit"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all"
+            >
+              Run Audit On Your Site <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>

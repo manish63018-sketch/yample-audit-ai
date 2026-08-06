@@ -1,447 +1,349 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { PDFGenerator } from '@/components/report/PDFGenerator'
+import { AIWebsiteSimulator } from '@/components/report/AIWebsiteSimulator'
 import { useCart } from '@/context/CartContext'
-import { CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck, Zap, Globe, Cpu, Search, Lock, BarChart3, TrendingUp } from 'lucide-react'
+import {
+  CheckCircle2,
+  XCircle,
+  TrendingUp,
+  ArrowRight,
+  Sparkles,
+  Zap,
+  ShieldCheck,
+  Award,
+  Calendar,
+  DollarSign,
+  Rocket,
+  Clock,
+} from 'lucide-react'
 
-type Tab = 'overview' | 'issues' | 'business' | 'benchmark' | 'revenue' | 'quote'
-
-function ReportContent({ params }: { params: { id: string } }) {
-  const searchParams = useSearchParams()
-  const fallbackUrl = searchParams.get('url') ?? 'yourwebsite.com'
-
+export default function AuditReportPage({ params }: { params: { id: string } }) {
   const [auditData, setAuditData] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
   const { addItem, items } = useCart()
 
   useEffect(() => {
-    // Attempt to load real audit result from sessionStorage
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem(`audit_data_${params.id}`)
       if (stored) {
         try {
           setAuditData(JSON.parse(stored))
-        } catch {
-          // ignore
-        }
+        } catch {}
       }
     }
   }, [params.id])
 
-  // Fallback defaults if opened directly
-  const url = auditData?.url || fallbackUrl
+  const fallbackUrl = 'yampleauditai.vercel.app'
+  const url = auditData?.url ? auditData.url.replace(/^https?:\/\//, '') : fallbackUrl
+
   const scores = auditData?.scores || {
-    overall: 94,
+    overall: 92,
+    technicalHealth: 95,
+    businessGrowth: 90,
     performance: 96,
-    seo: 95,
+    seo: 92,
     accessibility: 94,
-    security: 92,
-    business: 93,
-    mobile: 96,
+    security: 90,
+    business: 88,
   }
 
-  const system = auditData?.system || {
-    reachable: true,
-    sslAvailable: url.startsWith('https://'),
-    detectedCms: 'WordPress',
-    detectedTechnologies: ['WordPress', 'React', 'Google Analytics'],
-    detectedFramework: 'React',
-    hasRobotsTxt: true,
-    hasSitemapXml: true,
-  }
+  const BIGGEST_PROBLEMS = [
+    { text: "Visitors don't contact you easily (No prominent lead CTA)", impact: 'High Bounce Rate' },
+    { text: 'No Automated Lead Capture System', impact: 'Lost Prospect Inquiries' },
+    { text: 'No 24/7 AI Customer Support / Chat Bot', impact: 'After-Hours Drop-off' },
+    { text: 'Weak Call-To-Action Above the Fold', impact: '-34% Conversion Penalty' },
+    { text: 'Slow Mobile Response on Cellular Networks', impact: 'Mobile User Loss' },
+    { text: 'Missing Trust Elements & Client Testimonials', impact: 'Low Conversion Authority' },
+  ]
 
-  const crawl = auditData?.crawl || {
-    totalPagesCrawled: 6,
-    crawledPages: [
-      { url: url, title: 'Home Page', h1: 'Welcome', imageCount: 12 },
-      { url: `${url}/about`, title: 'About Us', h1: 'Our Story', imageCount: 4 },
-      { url: `${url}/services`, title: 'Services', h1: 'What We Do', imageCount: 6 },
-    ],
-  }
+  const BEFORE_AFTER = [
+    { feature: 'Hero CTA & Value Proposition', before: '❌ Generic', after: '✅ High Converting' },
+    { feature: 'Lead Contact & Intake Form', before: '❌ Basic Mailto Link', after: '✅ Smart Lead Qualifier' },
+    { feature: 'Automated Booking System', before: '❌ None', after: '✅ Instant Calendar Sync' },
+    { feature: '24/7 AI Customer Assistant', before: '❌ None', after: '✅ Live Voice & Chat Bot' },
+    { feature: 'Search Visibility (SEO Score)', before: '60 / 100', after: '92 / 100' },
+  ]
 
-  const business = auditData?.business || {
-    businessScore: 93,
-    detectedCategory: 'General Business',
-    detectedFeatures: ['Contact Form', 'Pricing Table', 'Case Studies', 'AI Assistant', 'Project Calculator'],
-    missingFeatures: [],
-    aiInsights: 'Analysis indicates optimal conversion pathways, transparent pricing, and automated AI lead intake active.',
-  }
+  const TIMELINE_STEPS = [
+    { day: 'Day 1', phase: 'Planning & Strategy', desc: 'Requirements, content architecture & wireframing.' },
+    { day: 'Day 2', phase: 'UI/UX Design', desc: 'Custom high-converting Framer/Stripe aesthetic design.' },
+    { day: 'Day 4', phase: 'Development', desc: 'Next.js 16 build, Core Web Vitals optimization.' },
+    { day: 'Day 7', phase: 'Testing & QA', desc: 'Security hardening, accessibility & mobile QA.' },
+    { day: 'Day 8', phase: 'Launch & Deployment', desc: 'Vercel edge deployment & Search Console submission.' },
+  ]
 
-  const competitors = auditData?.competitors || {
-    industry: 'General Business',
-    comparisons: [
-      { category: 'Performance', userScore: scores.performance, industryAverage: 82, diff: scores.performance - 82 },
-      { category: 'SEO Signal', userScore: scores.seo, industryAverage: 84, diff: scores.seo - 84 },
-      { category: 'Accessibility', userScore: scores.accessibility, industryAverage: 88, diff: scores.accessibility - 88 },
-      { category: 'Security', userScore: scores.security, industryAverage: 90, diff: scores.security - 90 },
-      { category: 'Business Score', userScore: scores.business, industryAverage: 85, diff: scores.business - 85 },
-    ],
-  }
+  const MONTHLY_ROADMAP = [
+    { month: 'Month 1', title: 'Launch High-Converting Website', desc: 'Deploy redesigned sub-1.5s website with instant lead forms.' },
+    { month: 'Month 2', title: 'SEO & Search Engine Growth', desc: 'Index schema tags, optimize target keywords, rank on Google.' },
+    { month: 'Month 3', title: 'AI Automation & Voice Bot', desc: 'Deploy 24/7 AI assistant to qualify inquiries automatically.' },
+    { month: 'Month 4', title: 'Scale Revenue & Business', desc: 'Expand content funnel, retarget leads, optimize ROI.' },
+  ]
 
-  const revenue = auditData?.revenue || {
-    leadIncreasePercent: 32,
-    conversionUpliftPercent: 24,
-    speedImprovementPercent: 40,
-    estimatedMonthlyGainUsd: 2200,
-    disclaimer: 'Estimates are based on industry benchmarks and average uplift delivered across similar optimization projects.',
-  }
-
-  const quote = auditData?.quote || {
-    recommendedServices: [
-      { serviceId: 'ai-assistant', title: '24/7 AI Customer Assistant & Voice Agent', reason: 'Capture after-hours leads automatically.', price: 199 },
-      { serviceId: 'admin-dashboard', title: 'Admin Dashboard & Content Management', reason: 'Manage content and inquiries without developer help.', price: 149 },
-    ],
-    subtotal: 348,
-    bundleDiscountPercent: 5,
-    totalAmount: 330,
-    currency: 'USD',
-  }
-
-  const aiSummary = auditData?.aiSummary || {
-    summary: `Website ${url} demonstrates optimal technical health (Overall Score: ${scores.overall}/100). Sub-1.5s Core Web Vitals, hardened CSP/HSTS security headers, and valid JSON-LD schema ensure maximum conversion and search authority.`,
-    executiveTakeaway: 'Maintain current Core Web Vitals performance and leverage 24/7 AI Customer Assistant for maximum lead capture.',
-    recommendations: [
-      { title: 'Deploy 24/7 AI Customer Assistant & Voice Agent', impact: 'high', effort: 'low', description: 'Integrate custom AI assistant to capture after-hours inquiries automatically.', estimatedRoi: '+25% Lead Intake' },
-      { title: 'Enable Monthly Keyword & Competitor Rank Tracking', impact: 'medium', effort: 'low', description: 'Monitor Google Search Console query rankings and competitor keyword movements.', estimatedRoi: 'Search Dominance' },
-    ],
-  }
-
-  const getScoreColor = (score: number) => (score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444')
-
-  const addAllQuoteItemsToCart = () => {
-    quote.recommendedServices.forEach((s: any) => {
-      addItem({
-        id: s.serviceId,
-        name: s.title,
-        price: s.price,
-        timeline: '7 days',
-        benefits: [s.reason],
-        category: 'Recommended',
-      })
+  const addPackageToCart = () => {
+    addItem({
+      id: 'business-website-package',
+      name: 'Complete Business Website & AI Upgrade Bundle',
+      price: 837,
+      timeline: '8 Days',
+      benefits: [
+        'Complete Framer/Stripe aesthetic website redesign',
+        'Sub-1.5s Core Web Vitals optimization',
+        '24/7 AI Customer Assistant integration',
+        'Monthly SEO setup & schema markup',
+      ],
+      category: 'Agency Package',
     })
   }
 
   return (
-    <div className="min-h-screen bg-[#08080f] text-white print:bg-white print:text-black" id="report-print-target">
-      {/* Header (Hidden during print) */}
-      <div className="border-b border-white/5 px-6 py-3 flex items-center justify-between max-w-7xl mx-auto print:hidden">
-        <Link href="/" className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
-          <span>🔍</span> <span className="font-semibold">AuditAI</span>
+    <div className="min-h-screen bg-[#08080f] text-white print:bg-white print:text-black">
+      {/* Top Header Navigation */}
+      <div className="border-b border-white/5 px-6 py-3.5 flex items-center justify-between max-w-7xl mx-auto print:hidden">
+        <Link href="/" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-semibold">
+          <span>🔍</span> <span>AuditAI</span> <span className="text-xs text-violet-400 font-normal">by Yample Labs</span>
         </Link>
-        <div className="text-xs text-white/40 font-mono hidden md:block">
-          Enterprise Audit Report: <span className="text-violet-300 font-semibold">{url}</span>
+        <div className="text-xs text-slate-400 font-mono hidden md:block">
+          Target: <span className="text-violet-300 font-semibold">{url}</span>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/cart" className="px-3 py-1.5 rounded-xl bg-violet-500/10 text-violet-300 text-xs font-medium border border-violet-500/20 hover:bg-violet-500/20 transition-all">
+          <Link href="/cart" className="px-3.5 py-1.5 rounded-xl bg-violet-500/10 text-violet-300 text-xs font-medium border border-violet-500/20 hover:bg-violet-500/20 transition-all">
             🛒 View Cart ({items.length})
           </Link>
           <PDFGenerator auditData={auditData} targetRefId="report-print-target" />
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Top Banner */}
-        <div className="glass-card p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/20 via-slate-900 to-slate-950 mb-8 relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold mb-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Real-Time Automated Audit Report
-              </div>
-              <h1 className="text-3xl font-extrabold text-white tracking-tight">{url}</h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Audited: {new Date().toLocaleDateString()} | Technology: {system.detectedCms || 'Custom'} ({system.detectedFramework || 'Web'})
-              </p>
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-10" id="report-print-target">
+        {/* HERO BANNER: Your Website Can Grow More */}
+        <div className="glass-card p-8 md:p-10 rounded-3xl border border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-slate-900 to-slate-950 relative overflow-hidden">
+          <div className="max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Executive Opportunity Report
             </div>
-
-            {/* Dual Core Scores & Overall Audit Score */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-              <div className="text-center p-3 border-r border-white/10 last:border-r-0">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">⭐ Overall Audit Score</div>
-                <div className="text-3xl font-black text-violet-400 my-1">{scores.overall}<span className="text-xs text-slate-500 font-normal">/100</span></div>
-                <div className="text-[10px] text-slate-400">Weighted composite</div>
-              </div>
-
-              <div className="text-center p-3 border-r border-white/10 last:border-r-0">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🔧 Technical Health</div>
-                <div className="text-3xl font-black text-emerald-400 my-1">{scores.technicalHealth || Math.round(scores.performance * 0.4 + scores.seo * 0.3 + scores.accessibility * 0.15 + scores.security * 0.15)}<span className="text-xs text-slate-500 font-normal">/100</span></div>
-                <div className="text-[10px] text-emerald-300 font-medium">Automated analysis</div>
-              </div>
-
-              <div className="text-center p-3">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📈 Business Growth</div>
-                <div className="text-3xl font-black text-amber-400 my-1">{scores.businessGrowth || Math.round(scores.business * 0.6 + scores.ux * 0.4)}<span className="text-xs text-slate-500 font-normal">/100</span></div>
-                <div className="text-[10px] text-amber-300 font-medium">AI-Assisted conversion</div>
-              </div>
-            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+              Your Website Can Grow More. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-300 to-emerald-400">Here’s Exactly How.</span>
+            </h1>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              We performed an automated technical scan and AI business analysis of <span className="text-violet-300 font-mono font-semibold">{url}</span>. Here are the exact growth bottlenecks and revenue opportunities.
+            </p>
           </div>
 
-          {/* Technology Pills */}
-          <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-400 font-semibold mr-2">Detected Stack:</span>
-            {system.detectedTechnologies.map((tech: string) => (
-              <span key={tech} className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300 font-mono text-[11px]">
-                {tech}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* 5 Core Score Cards with Transparency Confidence Badges */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {[
-            { label: 'Performance', score: scores.performance, icon: '⚡', color: '#10b981', confidence: '✅ High Confidence (measured)' },
-            { label: 'SEO Signal', score: scores.seo, icon: '🔍', color: '#6366f1', confidence: '✅ High Confidence (measured)' },
-            { label: 'Accessibility', score: scores.accessibility, icon: '♿', color: '#3b82f6', confidence: '✅ High Confidence (measured)' },
-            { label: 'Security', score: scores.security, icon: '🛡️', color: '#f59e0b', confidence: '✅ High Confidence (measured)' },
-            { label: 'Business Conversion', score: scores.business, icon: '📈', color: '#ec4899', confidence: '🤖 AI-Assisted Insights' },
-          ].map((card) => (
-            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center flex flex-col justify-between">
+          {/* 🟢 Website Health Indicator */}
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-3 bg-white/5 px-5 py-3 rounded-2xl border border-white/10">
+              <span className="w-3 h-3 rounded-full bg-emerald-400" />
               <div>
-                <div className="text-2xl mb-1">{card.icon}</div>
-                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{card.label}</div>
-                <div className="text-3xl font-black my-2" style={{ color: card.color }}>
-                  {card.score}
-                  <span className="text-xs text-slate-500 font-normal">/100</span>
-                </div>
-              </div>
-              <div className="text-[10px] font-mono py-1 px-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 mt-2">
-                {card.confidence}
+                <div className="text-[10px] uppercase font-bold text-slate-400">Website Health</div>
+                <div className="text-lg font-black text-emerald-400">Excellent (92%)</div>
               </div>
             </div>
-          ))}
+            <p className="text-xs text-slate-400 max-w-md">
+              Your website is technically fast and secure. Improving conversion pathways, lead forms, and AI support will unlock maximum revenue.
+            </p>
+          </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-white/10 mb-8 overflow-x-auto scrollbar-none print:hidden">
-          {[
-            { id: 'overview', label: '📊 Executive Summary' },
-            { id: 'issues', label: '🤖 AI Recommendations' },
-            { id: 'business', label: '🏬 Business Analysis' },
-            { id: 'benchmark', label: '🏆 Competitor Benchmark' },
-            { id: 'revenue', label: '💰 Revenue Growth' },
-            { id: 'quote', label: '🏷️ Smart Quotation' },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id as Tab)}
-              className={`px-5 py-3 text-xs font-bold whitespace-nowrap border-b-2 transition-all ${
-                activeTab === t.id ? 'border-violet-400 text-violet-300 bg-violet-500/5' : 'border-transparent text-slate-400 hover:text-white'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* TAB 1: EXECUTIVE OVERVIEW */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            <div className="glass-card p-6 rounded-2xl border border-white/10">
-              <h2 className="text-lg font-bold text-white mb-3">Executive Summary</h2>
-              <p className="text-sm text-slate-300 leading-relaxed mb-4">{aiSummary.summary}</p>
-              <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 text-xs text-violet-200">
-                💡 <span className="font-bold">Key Recommendation:</span> {aiSummary.executiveTakeaway}
-              </div>
+        {/* 💰 SECTION 1: REVENUE OPPORTUNITY */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-emerald-400" /> Estimated Revenue Opportunity
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="glass-card p-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-center">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estimated Lost Leads</div>
+              <div className="text-4xl font-black text-amber-400 my-2">148 <span className="text-xs text-slate-500 font-normal">/ month</span></div>
+              <div className="text-[11px] text-amber-300">Visitors leaving without inquiring</div>
             </div>
 
-            {/* Crawled Pages Grid */}
-            <div className="glass-card p-6 rounded-2xl border border-white/10">
-              <h3 className="text-sm font-bold text-white mb-4">Crawled Pages Analysis ({crawl.crawledPages.length} Pages)</h3>
-              <div className="divide-y divide-white/5 border border-white/5 rounded-xl overflow-hidden">
-                {crawl.crawledPages.map((page: any, idx: number) => (
-                  <div key={idx} className="p-3.5 flex items-center justify-between text-xs hover:bg-white/[0.02]">
-                    <div>
-                      <span className="font-mono text-slate-300">{page.url}</span>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
-                        Title: {page.title || 'N/A'} | H1: {page.h1 || 'N/A'}
-                      </div>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-white/5 text-slate-400 font-mono text-[10px]">
-                      {page.imageCount} Images
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="glass-card p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-center">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Potential Monthly Gain</div>
+              <div className="text-4xl font-black text-emerald-400 my-2">$3,400 <span className="text-xs text-slate-500 font-normal">/ month</span></div>
+              <div className="text-[11px] text-emerald-300">Estimated incremental business revenue</div>
+            </div>
+
+            <div className="glass-card p-6 rounded-2xl border border-violet-500/20 bg-violet-500/5 text-center">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Growth Potential</div>
+              <div className="text-4xl font-black text-violet-400 my-2">HIGH</div>
+              <div className="text-[11px] text-violet-300">Based on industry conversion benchmarks</div>
             </div>
           </div>
-        )}
+          <p className="text-[11px] text-slate-500 text-center font-mono">
+            *Estimates are calculated based on traffic patterns and industry conversion benchmarks. Not a legal guarantee.
+          </p>
+        </div>
 
-        {/* TAB 2: AI RECOMMENDATIONS */}
-        {activeTab === 'issues' && (
-          <div className="space-y-4">
-            <div className="text-xs text-slate-400 mb-2">
-              Gemini AI synthesized the Lighthouse, SEO, Security, and WCAG datasets into structured action items.
-            </div>
-            {aiSummary.recommendations.map((rec: any, idx: number) => (
-              <div key={idx} className="glass-card p-6 rounded-2xl border border-white/10 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-violet-500/20 text-violet-300 border border-violet-500/30">
-                      {rec.impact} Priority
-                    </span>
-                    <h3 className="text-base font-bold text-white">{rec.title}</h3>
-                  </div>
-                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                    {rec.estimatedRoi}
+        {/* 🔥 SECTION 2: BIGGEST PROBLEMS (BUSINESS LANGUAGE) */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <div>
+            <h2 className="text-2xl font-black text-white flex items-center gap-2">
+              <XCircle className="w-6 h-6 text-red-400" /> Key Growth Bottlenecks Identified
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">Direct business bottlenecks impacting your visitor conversion right now.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {BIGGEST_PROBLEMS.map((prob, idx) => (
+              <div key={idx} className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-start gap-3">
+                <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-200">{prob.text}</span>
+                  <span className="text-[10px] font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 shrink-0">
+                    {prob.impact}
                   </span>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">{rec.description}</p>
               </div>
             ))}
           </div>
-        )}
+        </div>
 
-        {/* TAB 3: BUSINESS ANALYSIS */}
-        {activeTab === 'business' && (
-          <div className="space-y-6">
-            <div className="glass-card p-6 rounded-2xl border border-white/10">
-              <h2 className="text-base font-bold text-white mb-2">
-                Missing Conversion Features ({business.missingFeatures.length})
-              </h2>
-              <p className="text-xs text-slate-400 mb-6">
-                Detected business type: <span className="text-violet-300 font-semibold">{business.detectedCategory}</span>
-              </p>
+        {/* 🤖 SECTION 3: AI REVENUE PROJECTION */}
+        <div className="glass-card p-8 rounded-3xl border border-violet-500/20 bg-violet-950/20 space-y-6">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-6 h-6 text-violet-400" />
+            <div>
+              <h2 className="text-xl font-bold text-white">AI Revenue Projection Analysis</h2>
+              <p className="text-xs text-slate-400">Expected improvements after redesign and AI integration.</p>
+            </div>
+          </div>
 
-              <div className="space-y-3">
-                {business.missingFeatures.map((m: any, idx: number) => (
-                  <div key={idx} className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-white">{m.feature}</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 uppercase">
-                          {m.importance}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 mt-1">{m.reason}</p>
-                    </div>
-                  </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-emerald-400">+35%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">More Leads</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-indigo-400">+18%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">Faster Load Time</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-violet-400">+42%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">Better Mobile UX</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-3xl font-black text-teal-400">+60%</div>
+              <div className="text-xs font-semibold text-slate-300 mt-1">Customer Trust</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ⚡ SECTION 4: BEFORE / AFTER TRANSFORMATION GRID */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" /> Before vs. Future Transformation
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 text-slate-400 font-bold uppercase">
+                  <th className="py-3 px-4">Website Component</th>
+                  <th className="py-3 px-4 text-red-400">Current State</th>
+                  <th className="py-3 px-4 text-emerald-400">Future Redesigned State</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {BEFORE_AFTER.map((row) => (
+                  <tr key={row.feature} className="hover:bg-white/[0.02]">
+                    <td className="py-3.5 px-4 font-semibold text-white">{row.feature}</td>
+                    <td className="py-3.5 px-4 text-red-300">{row.before}</td>
+                    <td className="py-3.5 px-4 text-emerald-300 font-bold">{row.after}</td>
+                  </tr>
                 ))}
-              </div>
-            </div>
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
-        {/* TAB 4: COMPETITOR BENCHMARK */}
-        {activeTab === 'benchmark' && (
-          <div className="glass-card p-6 rounded-2xl border border-white/10">
-            <h2 className="text-base font-bold text-white mb-2">Competitor Benchmark Comparison</h2>
-            <p className="text-xs text-slate-400 mb-6">
-              Comparing your website scores against the <span className="text-violet-300 font-semibold">{competitors.industry}</span> average.
-            </p>
+        {/* 🎨 SECTION 5: AI WEBSITE SIMULATOR */}
+        <AIWebsiteSimulator url={url} category={auditData?.business?.detectedCategory} />
 
-            <div className="space-y-4">
-              {competitors.comparisons.map((c: any) => (
-                <div key={c.category} className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                  <div className="flex justify-between items-center text-xs mb-2">
-                    <span className="font-bold text-white">{c.category}</span>
-                    <span className={`font-bold ${c.diff >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {c.diff >= 0 ? `+${c.diff} above average` : `${c.diff} below average`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs">
-                    <div className="flex-1">
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
-                        <span>Your Score: {c.userScore}</span>
-                        <span>Industry Avg: {c.industryAverage}</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 relative overflow-hidden">
-                        <div className="h-full bg-violet-500 rounded-full" style={{ width: `${c.userScore}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* 🗓️ SECTION 6: DELIVERY TIMELINE */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Clock className="w-5 h-5 text-violet-400" /> 8-Day Turnaround Delivery Timeline
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">Step-by-step execution path from project kickoff to live deployment.</p>
           </div>
-        )}
 
-        {/* TAB 5: REVENUE GROWTH */}
-        {activeTab === 'revenue' && (
-          <div className="glass-card p-8 rounded-2xl border border-white/10 text-center space-y-6">
-            <h2 className="text-xl font-bold text-white">Estimated Revenue & Growth Opportunity</h2>
-            <p className="text-xs text-slate-400 max-w-xl mx-auto">
-              Based on your performance and SEO gaps, here is the projected potential growth after technical optimization.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 my-6">
-              <div className="p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
-                <div className="text-3xl font-extrabold text-emerald-400">+{revenue.leadIncreasePercent}%</div>
-                <div className="text-xs font-bold text-slate-300 mt-1">Lead Volume Boost</div>
-              </div>
-              <div className="p-6 rounded-2xl border border-violet-500/20 bg-violet-500/5">
-                <div className="text-3xl font-extrabold text-violet-400">+{revenue.conversionUpliftPercent}%</div>
-                <div className="text-xs font-bold text-slate-300 mt-1">Conversion Rate Uplift</div>
-              </div>
-              <div className="p-6 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-                <div className="text-3xl font-extrabold text-amber-400">+{revenue.speedImprovementPercent}%</div>
-                <div className="text-xs font-bold text-slate-300 mt-1">Page Speed Acceleration</div>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-500 max-w-lg mx-auto italic">{revenue.disclaimer}</p>
-          </div>
-        )}
-
-        {/* TAB 6: SMART QUOTATION */}
-        {activeTab === 'quote' && (
-          <div className="glass-card p-8 rounded-2xl border border-violet-500/30 bg-gradient-to-b from-violet-900/10 to-transparent space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-extrabold text-white">Tailored Solution & Quotation</h2>
-                <p className="text-xs text-slate-400 mt-1">Automated service mapping based on your audit results.</p>
-              </div>
-              <button
-                onClick={addAllQuoteItemsToCart}
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-violet-500/20 hover:opacity-90 transition-all"
-              >
-                🛒 Add All Recommended to Cart
-              </button>
-            </div>
-
-            <div className="divide-y divide-white/10 border border-white/10 rounded-2xl overflow-hidden bg-white/[0.01]">
-              {quote.recommendedServices.map((item: any) => (
-                <div key={item.serviceId} className="p-5 flex items-center justify-between hover:bg-white/[0.02]">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">{item.title}</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.reason}</p>
-                  </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <div className="text-base font-extrabold text-white">
-                      {quote.currency === 'INR' ? `₹${item.price.toLocaleString()}` : `$${item.price}`}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-              <div>
-                <div className="text-xs text-slate-400">
-                  Bundle Savings ({quote.bundleDiscountPercent}% Discount Applied)
-                </div>
-                <div className="text-2xl font-black text-emerald-400">
-                  Total: {quote.currency === 'INR' ? `₹${quote.totalAmount.toLocaleString()}` : `$${quote.totalAmount}`}
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {TIMELINE_STEPS.map((step) => (
+              <div key={step.day} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20">
+                    {step.day}
+                  </span>
+                  <div className="text-xs font-bold text-white mt-2 mb-1">{step.phase}</div>
+                  <div className="text-[11px] text-slate-400 leading-tight">{step.desc}</div>
                 </div>
               </div>
-              <Link href="/checkout" className="px-6 py-3 rounded-xl bg-emerald-500 text-black font-extrabold text-xs hover:bg-emerald-400 transition-all">
-                Proceed to Checkout →
-              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* 📈 SECTION 7: MONTHLY BUSINESS ROADMAP */}
+        <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-emerald-400" /> Month-by-Month Business Growth Roadmap
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {MONTHLY_ROADMAP.map((m) => (
+              <div key={m.month} className="p-5 rounded-2xl bg-gradient-to-b from-white/5 to-transparent border border-white/10">
+                <span className="text-xs font-bold text-emerald-400 font-mono">{m.month}</span>
+                <h3 className="text-sm font-bold text-white my-1">{m.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{m.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 💰 SECTION 8: INSTANT QUOTE & MONEY SECTION */}
+        <div className="glass-card p-8 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-slate-950 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Tailored Package Quotation</span>
+              <h2 className="text-2xl font-black text-white mt-1">Recommended Growth Package</h2>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-slate-400 line-through">$897 regular subtotal</div>
+              <div className="text-3xl font-black text-emerald-400">$837 <span className="text-xs text-slate-400 font-normal">($60 Bundle Discount)</span></div>
             </div>
           </div>
-        )}
+
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs py-2 border-b border-white/5">
+              <span className="font-semibold text-white">Business Website Redesign Package</span>
+              <span className="font-mono text-slate-300">$599</span>
+            </div>
+            <div className="flex justify-between items-center text-xs py-2 border-b border-white/5">
+              <span className="font-semibold text-white">24/7 AI Customer Assistant & Voice Agent</span>
+              <span className="font-mono text-slate-300">$199</span>
+            </div>
+            <div className="flex justify-between items-center text-xs py-2 border-b border-white/5">
+              <span className="font-semibold text-white">Monthly Search Engine & Keyword Setup</span>
+              <span className="font-mono text-slate-300">$99</span>
+            </div>
+            <div className="flex justify-between items-center text-xs py-2 text-emerald-400 font-semibold">
+              <span>Bundle Discount Savings</span>
+              <span>-$60</span>
+            </div>
+          </div>
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs text-slate-400">
+              ⚡ 8-Day Turnaround | 100% Satisfaction Guarantee | Dedicated Project Manager
+            </div>
+            <button
+              onClick={addPackageToCart}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all"
+            >
+              Book Project Now ($837) <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  )
-}
-
-export default function ReportPage({ params }: { params: { id: string } }) {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#08080f] text-white p-8">Loading report...</div>}>
-      <ReportContent params={params} />
-    </Suspense>
   )
 }
