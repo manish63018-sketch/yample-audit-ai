@@ -1,8 +1,8 @@
-import type { RunnerOptions, SecurityResult, SecurityHeaderStatus } from './types.js'
+import type { RunnerOptions, SecurityResult, SecurityHeaderStatus } from './types'
 
 /**
- * Security Audit Runner
- * Checks HTTPS, SSL, and Security Headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+ * Real Security Audit Runner (Step 7 of Audit Workflow)
+ * Checks HTTPS, SSL, Security Headers, Mixed Content, Exposed Files, and Cookie flags.
  */
 export async function runSecurity(options: RunnerOptions): Promise<SecurityResult> {
   const url = options.url
@@ -10,20 +10,30 @@ export async function runSecurity(options: RunnerOptions): Promise<SecurityResul
   const headersList: SecurityHeaderStatus[] = []
 
   let responseHeaders: Headers | null = null
+  let html = ''
+
+  const parsed = new URL(url)
+  const origin = parsed.origin
 
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), options.timeoutMs || 8000)
 
     const response = await fetch(url, {
-      method: 'HEAD',
+      method: 'GET',
       signal: controller.signal,
+      headers: {
+        'User-Agent': 'AuditAIBot/1.0 (+https://auditai.yamplelabs.com)',
+      },
     })
 
     clearTimeout(timeoutId)
     responseHeaders = response.headers
+    if (response.ok) {
+      html = await response.text()
+    }
   } catch (err) {
-    console.warn(`HEAD request failed for security check of ${url}:`, err)
+    console.warn(`Fetch failed for security check of ${url}:`, err)
   }
 
   const checkHeader = (headerName: string, recommended: string) => {
@@ -44,15 +54,49 @@ export async function runSecurity(options: RunnerOptions): Promise<SecurityResul
   const hasXContentTypeOptions = checkHeader('x-content-type-options', 'nosniff')
   const hasReferrerPolicy = checkHeader('referrer-policy', 'strict-origin-when-cross-origin')
 
-  let score = 20 // Base score
+  // Mixed Content check
+  let mixedContentCount = 0
+  if (isHttps && html) {
+    const httpResources = html.match(/src=["']http:\/\/|href=["']http:\/\/(?![^"']*canonical)/gi) || []
+    mixedContentCount = httpResources.length
+  }
+
+  // Exposed files check
+  const exposedFiles: string[] = []
+  const sensitivePaths = ['/.env', '/.git/config', '/wp-config.php.bak', '/phpinfo.php']
+
+  await Promise.all(
+    sensitivePaths.map(async (path) => {
+      try {
+        const res = await fetch(`${origin}${path}`, { method: 'HEAD' })
+        if (res.status === 200) exposedFiles.push(path)
+      } catch {
+        // Path safely blocked or unreadable
+      }
+    })
+  )
+
+  // Cookie security check
+  const setCookie = responseHeaders ? responseHeaders.get('set-cookie') || '' : ''
+  const cookieSecurity = {
+    hasSecure: /secure/i.test(setCookie),
+    hasHttpOnly: /httponly/i.test(setCookie),
+    hasSameSite: /samesite/i.test(setCookie),
+  }
+
+  // Objective Security Score (0 - 100)
+  let score = 20
   if (isHttps) score += 30
   if (hasHsts) score += 15
   if (hasCsp) score += 15
   if (hasXFrameOptions) score += 10
   if (hasXContentTypeOptions) score += 10
 
+  if (mixedContentCount > 0) score -= 15
+  if (exposedFiles.length > 0) score -= 25
+
   return {
-    score: Math.min(score, 100),
+    score: Math.max(10, Math.min(100, score)),
     isHttps,
     sslValid: isHttps,
     headers: headersList,
@@ -61,5 +105,8 @@ export async function runSecurity(options: RunnerOptions): Promise<SecurityResul
     hasXFrameOptions,
     hasXContentTypeOptions,
     hasReferrerPolicy,
+    mixedContentCount,
+    exposedFiles,
+    cookieSecurity,
   }
 }

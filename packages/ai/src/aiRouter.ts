@@ -60,8 +60,50 @@ export class AIRouter {
   }
 
   private static async callGemini(prompt: string, ctx: PromptContext): Promise<AISummaryResult> {
-    // Gemini API integration placeholder
-    return this.generateStructuredFallbackSummary(ctx, 'gemini')
+    const env = (typeof process !== 'undefined' ? process.env : {}) as Record<string, string | undefined>
+    const geminiKey = env.GEMINI_API_KEY
+    if (!geminiKey) return this.generateStructuredFallbackSummary(ctx, 'gemini')
+
+    const systemInstruction = `You are the Lead SaaS Product Architect & Technical Auditor for AuditAI by Yample Labs.
+Analyze the provided audit data and return ONLY valid JSON matching this structure:
+{
+  "summary": "2-3 sentence executive summary explaining technical debt and business impact in clear language.",
+  "executiveTakeaway": "1 sentence core recommendation.",
+  "recommendations": [
+    {
+      "title": "Action title",
+      "impact": "critical" | "high" | "medium",
+      "effort": "low" | "medium" | "high",
+      "description": "Clear step-by-step fix",
+      "estimatedRoi": "Expected gain",
+      "confidence": 95
+    }
+  ]
+}`
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${systemInstruction}\n\n${prompt}` }] }],
+        generationConfig: { responseMimeType: 'application/json' },
+      }),
+    })
+
+    if (!res.ok) throw new Error(`Gemini API returned status ${res.status}`)
+
+    const data = await res.json()
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) throw new Error('Empty response from Gemini API')
+
+    const parsed = JSON.parse(text)
+    return {
+      summary: parsed.summary || 'Audit complete.',
+      executiveTakeaway: parsed.executiveTakeaway || 'Targeted optimization recommended.',
+      recommendations: parsed.recommendations || [],
+      confidence: 95,
+      providerUsed: 'gemini',
+    }
   }
 
   /** High-precision rule-based AI reasoning fallback */

@@ -80,6 +80,10 @@ export interface SEOResult {
   }
   totalImages: number
   imagesWithoutAlt: number
+  brokenLinks?: string[]
+  internalLinksCount?: number
+  externalLinksCount?: number
+  schemaTypes?: string[]
 }
 
 export interface SecurityHeaderStatus {
@@ -99,6 +103,92 @@ export interface SecurityResult {
   hasXFrameOptions: boolean
   hasXContentTypeOptions: boolean
   hasReferrerPolicy: boolean
+  mixedContentCount?: number
+  exposedFiles?: string[]
+  cookieSecurity?: {
+    hasSecure: boolean
+    hasHttpOnly: boolean
+    hasSameSite: boolean
+  }
+}
+
+export interface SystemValidationResult {
+  reachable: boolean
+  httpStatus: number
+  sslAvailable: boolean
+  redirectChain: string[]
+  hasRobotsTxt: boolean
+  hasSitemapXml: boolean
+  detectedCms: string | null
+  detectedTechnologies: string[]
+  detectedFramework: string | null
+  serverHeader: string | null
+}
+
+export interface CrawlPageData {
+  url: string
+  title: string | null
+  h1: string | null
+  metaDescription: string | null
+  imageCount: number
+  internalLinks: string[]
+  externalLinks: string[]
+  hasSchema: boolean
+}
+
+export interface CrawlResult {
+  crawledPages: CrawlPageData[]
+  totalPagesCrawled: number
+  discoveredUrls: string[]
+}
+
+export interface MissingFeature {
+  feature: string
+  importance: 'critical' | 'recommended' | 'optional'
+  reason: string
+}
+
+export interface BusinessAnalysisResult {
+  businessScore: number
+  detectedCategory: string
+  detectedFeatures: string[]
+  missingFeatures: MissingFeature[]
+  aiInsights: string
+}
+
+export interface BenchmarkComparison {
+  category: string
+  userScore: number
+  industryAverage: number
+  diff: number
+}
+
+export interface CompetitorBenchmarkResult {
+  industry: string
+  comparisons: BenchmarkComparison[]
+}
+
+export interface RevenueEstimate {
+  leadIncreasePercent: number
+  conversionUpliftPercent: number
+  speedImprovementPercent: number
+  estimatedMonthlyGainUsd: number
+  disclaimer: string
+}
+
+export interface QuoteItem {
+  serviceId: string
+  title: string
+  reason: string
+  price: number
+}
+
+export interface SmartQuoteResult {
+  recommendedServices: QuoteItem[]
+  subtotal: number
+  bundleDiscountPercent: number
+  totalAmount: number
+  currency: 'USD' | 'INR'
 }
 
 export interface AuditScores {
@@ -114,6 +204,9 @@ export interface AuditScores {
 
 export interface AuditRunPayload {
   url: string
+  businessCategory?: string
+  country?: string
+  businessGoal?: string
   websiteId?: string
   organizationId?: string
   options?: {

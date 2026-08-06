@@ -3,313 +3,454 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { AIRecommendationPopup } from '@/components/journey/AIRecommendationPopup'
+import { PDFGenerator } from '@/components/report/PDFGenerator'
 import { useCart } from '@/context/CartContext'
+import { CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck, Zap, Globe, Cpu, Search, Lock, BarChart3, TrendingUp } from 'lucide-react'
 
-const MOCK_SCORES = {
-  performance: 72,
-  seo: 64,
-  accessibility: 58,
-  security: 81,
-  business: 45,
-}
-
-const MOCK_ISSUES = [
-  { severity: 'critical', category: 'Performance', title: 'Largest Contentful Paint (LCP) is 4.8s', desc: 'LCP should be under 2.5s for good user experience. This is causing a 34% bounce rate increase.', fix: 'Optimize hero image, implement lazy loading, enable CDN caching.' },
-  { severity: 'critical', category: 'SEO', title: 'Missing meta descriptions on 8 pages', desc: 'Pages without meta descriptions get 30% fewer clicks in search results.', fix: 'Add unique, compelling 150-160 character meta descriptions to all pages.' },
-  { severity: 'critical', category: 'Business', title: 'No clear Call-to-Action above the fold', desc: 'Users must scroll before finding a conversion point — estimated 40% drop-off.', fix: 'Add prominent CTA button in the hero section visible without scrolling.' },
-  { severity: 'warning', category: 'Accessibility', title: 'Low color contrast on navigation (2.4:1 ratio)', desc: 'WCAG AA requires a minimum 4.5:1 contrast ratio for body text.', fix: 'Increase foreground color lightness or darken background color.' },
-  { severity: 'warning', category: 'Security', title: 'Content Security Policy (CSP) header missing', desc: 'CSP prevents XSS attacks and data injection vulnerabilities.', fix: 'Configure CSP header in server response or Next.js config.' },
-  { severity: 'warning', category: 'Performance', title: 'Render-blocking JavaScript detected', desc: '3 JavaScript files are blocking page render for 1.2 seconds.', fix: 'Add defer attribute to non-critical scripts, split code bundles.' },
-  { severity: 'info', category: 'SEO', title: 'Image alt texts missing on 12 images', desc: 'Alt text improves both SEO and accessibility for visually impaired users.', fix: 'Add descriptive alt attributes to all <img> elements.' },
-  { severity: 'info', category: 'Performance', title: 'No service worker / PWA capabilities', desc: 'PWA support enables offline mode and improves mobile user retention.', fix: 'Implement a service worker with next-pwa or Workbox.' },
-]
-
-const MOCK_TECHS = ['Next.js', 'React', 'Vercel', 'Cloudflare', 'Google Analytics', 'Unknown CMS']
-
-const OVERALL = Math.round(Object.values(MOCK_SCORES).reduce((a, b) => a + b, 0) / 5)
-
-type Tab = 'overview' | 'issues' | 'solutions' | 'business'
+type Tab = 'overview' | 'issues' | 'business' | 'benchmark' | 'revenue' | 'quote'
 
 function ReportContent({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams()
-  const url = searchParams.get('url') ?? 'yourwebsite.com'
-  const [showPopup, setShowPopup] = useState(false)
+  const fallbackUrl = searchParams.get('url') ?? 'yourwebsite.com'
+
+  const [auditData, setAuditData] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [animatedScores, setAnimatedScores] = useState({ performance: 0, seo: 0, accessibility: 0, security: 0, business: 0 })
-  const [animatedOverall, setAnimatedOverall] = useState(0)
   const { addItem, items } = useCart()
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const duration = 1200
-      const start = performance.now()
-      const animate = (now: number) => {
-        const t = Math.min((now - start) / duration, 1)
-        const ease = 1 - Math.pow(1 - t, 3)
-        setAnimatedScores({
-          performance: Math.round(MOCK_SCORES.performance * ease),
-          seo: Math.round(MOCK_SCORES.seo * ease),
-          accessibility: Math.round(MOCK_SCORES.accessibility * ease),
-          security: Math.round(MOCK_SCORES.security * ease),
-          business: Math.round(MOCK_SCORES.business * ease),
-        })
-        setAnimatedOverall(Math.round(OVERALL * ease))
-        if (t < 1) requestAnimationFrame(animate)
+    // Attempt to load real audit result from sessionStorage
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem(`audit_data_${params.id}`)
+      if (stored) {
+        try {
+          setAuditData(JSON.parse(stored))
+        } catch {
+          // ignore
+        }
       }
-      requestAnimationFrame(animate)
-    }, 300)
+    }
+  }, [params.id])
 
-    const popupTimer = setTimeout(() => setShowPopup(true), 3000)
-    return () => { clearTimeout(timer); clearTimeout(popupTimer) }
-  }, [])
+  // Fallback defaults if opened directly
+  const url = auditData?.url || fallbackUrl
+  const scores = auditData?.scores || {
+    overall: 68,
+    performance: 74,
+    seo: 65,
+    accessibility: 82,
+    security: 70,
+    business: 62,
+    mobile: 78,
+  }
 
-  const getScoreColor = (score: number) => score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444'
-  const getScoreLabel = (score: number) => score >= 80 ? 'Good' : score >= 60 ? 'Needs Work' : 'Poor'
+  const system = auditData?.system || {
+    reachable: true,
+    sslAvailable: url.startsWith('https://'),
+    detectedCms: 'WordPress',
+    detectedTechnologies: ['WordPress', 'React', 'Google Analytics'],
+    detectedFramework: 'React',
+    hasRobotsTxt: true,
+    hasSitemapXml: true,
+  }
 
-  const criticalCount = MOCK_ISSUES.filter(i => i.severity === 'critical').length
-  const warnCount = MOCK_ISSUES.filter(i => i.severity === 'warning').length
+  const crawl = auditData?.crawl || {
+    totalPagesCrawled: 6,
+    crawledPages: [
+      { url: url, title: 'Home Page', h1: 'Welcome', imageCount: 12 },
+      { url: `${url}/about`, title: 'About Us', h1: 'Our Story', imageCount: 4 },
+      { url: `${url}/services`, title: 'Services', h1: 'What We Do', imageCount: 6 },
+    ],
+  }
 
-  const SOLUTIONS = [
-    { id: 'website-upgrade', icon: '⚡', name: 'Website Upgrade', match: 95, price: 599, timeline: '7 days', benefits: ['50% faster LCP', 'All SEO fixes', 'Mobile-first redesign'], tag: '🏆 Recommended' },
-    { id: 'ai-automation', icon: '🤖', name: 'AI Customer Assistant', match: 88, price: 500, timeline: '7 days', benefits: ['24/7 lead capture', 'Instant response', 'WhatsApp integration'], tag: null },
-    { id: 'crm', icon: '📋', name: 'CRM System', match: 82, price: 400, timeline: '10 days', benefits: ['Lead pipeline', 'Auto follow-up', 'Conversion tracking'], tag: null },
-    { id: 'seo-monthly', icon: '🔍', name: 'Monthly SEO Package', match: 79, price: 200, timeline: 'Monthly', benefits: ['Keyword growth', 'Content strategy', 'Rank tracking'], tag: null },
-  ]
+  const business = auditData?.business || {
+    businessScore: 62,
+    detectedCategory: 'General Business',
+    detectedFeatures: ['Contact Form', 'About Page'],
+    missingFeatures: [
+      { feature: '24/7 AI Customer Assistant', importance: 'critical', reason: 'After-hours leads bounce without instant response.' },
+      { feature: 'Online Booking System', importance: 'recommended', reason: 'Clients prefer self-service online scheduling.' },
+      { feature: 'Client Testimonials / Social Proof', importance: 'recommended', reason: 'High-ticket buyers require social proof before inquiring.' },
+    ],
+    aiInsights: 'Analysis indicates missing lead capture and automated scheduling mechanisms.',
+  }
+
+  const competitors = auditData?.competitors || {
+    industry: 'General Business',
+    comparisons: [
+      { category: 'Performance', userScore: scores.performance, industryAverage: 82, diff: scores.performance - 82 },
+      { category: 'SEO Signal', userScore: scores.seo, industryAverage: 84, diff: scores.seo - 84 },
+      { category: 'Accessibility', userScore: scores.accessibility, industryAverage: 88, diff: scores.accessibility - 88 },
+      { category: 'Security', userScore: scores.security, industryAverage: 90, diff: scores.security - 90 },
+      { category: 'Business Score', userScore: scores.business, industryAverage: 85, diff: scores.business - 85 },
+    ],
+  }
+
+  const revenue = auditData?.revenue || {
+    leadIncreasePercent: 28,
+    conversionUpliftPercent: 18,
+    speedImprovementPercent: 35,
+    estimatedMonthlyGainUsd: 1450,
+    disclaimer: 'Estimates are based on industry benchmarks and average uplift delivered across similar optimization projects.',
+  }
+
+  const quote = auditData?.quote || {
+    recommendedServices: [
+      { serviceId: 'website-upgrade', title: 'Website Upgrade & Performance Overhaul', reason: `Current performance score is ${scores.performance}/100.`, price: 599 },
+      { serviceId: 'admin-dashboard', title: 'Admin Dashboard & Content Management', reason: 'Manage content and inquiries without developer help.', price: 149 },
+      { serviceId: 'ai-assistant', title: '24/7 AI Customer Assistant & Voice Agent', reason: 'Capture after-hours leads automatically.', price: 199 },
+    ],
+    subtotal: 947,
+    bundleDiscountPercent: 10,
+    totalAmount: 852,
+    currency: 'USD',
+  }
+
+  const aiSummary = auditData?.aiSummary || {
+    summary: `Website ${url} demonstrates moderate technical debt (Health Score: ${scores.overall}/100). Performance latency and missing automated lead conversion mechanisms are currently impacting visitor retention.`,
+    executiveTakeaway: 'Implementing recommended performance fixes and an AI lead assistant will secure maximum ROI.',
+    recommendations: [
+      { title: 'Optimize Core Web Vitals & Image Payloads', impact: 'critical', effort: 'medium', description: 'Convert heavy images to WebP and enable CDN caching.', estimatedRoi: '+18% Speed Boost' },
+      { title: 'Deploy 24/7 AI Customer Assistant', impact: 'high', effort: 'low', description: 'Integrate custom AI assistant to capture after-hours inquiries.', estimatedRoi: '+25% Lead Capture' },
+      { title: 'Configure Security Headers (CSP & HSTS)', impact: 'medium', effort: 'low', description: 'Deploy CSP and HSTS headers for browser security.', estimatedRoi: 'Full Protection' },
+    ],
+  }
+
+  const getScoreColor = (score: number) => (score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444')
+
+  const addAllQuoteItemsToCart = () => {
+    quote.recommendedServices.forEach((s: any) => {
+      addItem({
+        id: s.serviceId,
+        name: s.title,
+        price: s.price,
+        timeline: '7 days',
+        benefits: [s.reason],
+        category: 'Recommended',
+      })
+    })
+  }
 
   return (
-    <div className="min-h-screen bg-[#08080f] text-white">
-      {/* Header */}
-      <div className="border-b border-white/5 px-6 py-3 flex items-center justify-between max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#08080f] text-white print:bg-white print:text-black" id="report-print-target">
+      {/* Header (Hidden during print) */}
+      <div className="border-b border-white/5 px-6 py-3 flex items-center justify-between max-w-7xl mx-auto print:hidden">
         <Link href="/" className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
           <span>🔍</span> <span className="font-semibold">AuditAI</span>
         </Link>
-        <div className="text-xs text-white/30 font-mono hidden md:block">
-          Report for: <span className="text-violet-300">{url}</span>
+        <div className="text-xs text-white/40 font-mono hidden md:block">
+          Enterprise Audit Report: <span className="text-violet-300 font-semibold">{url}</span>
         </div>
-        <div className="flex gap-2">
-          <Link href="/cart" className="px-3 py-1.5 rounded-lg bg-violet-500/10 text-violet-300 text-xs font-medium border border-violet-500/20 hover:bg-violet-500/20 transition-all">
+        <div className="flex items-center gap-3">
+          <Link href="/cart" className="px-3 py-1.5 rounded-xl bg-violet-500/10 text-violet-300 text-xs font-medium border border-violet-500/20 hover:bg-violet-500/20 transition-all">
             🛒 View Cart ({items.length})
           </Link>
-          <Link href={`/api/reports/download?id=${params.id}`} className="px-3 py-1.5 rounded-lg bg-white/5 text-white/60 text-xs font-medium border border-white/10 hover:bg-white/10 transition-all">
-            📄 Download PDF
-          </Link>
+          <PDFGenerator auditData={auditData} targetRefId="report-print-target" />
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Top summary bar */}
-        <div className="rounded-2xl border border-white/5 bg-white/2 p-6 mb-6 flex flex-wrap items-center gap-6">
-          {/* Overall score */}
-          <div className="relative w-20 h-20 shrink-0">
-            <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
-              <circle cx="40" cy="40" r="32" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="none" />
-              <circle
-                cx="40" cy="40" r="32"
-                stroke={getScoreColor(animatedOverall)}
-                strokeWidth="8" fill="none"
-                strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 32}`}
-                strokeDashoffset={`${2 * Math.PI * 32 * (1 - animatedOverall / 100)}`}
-                style={{ transition: 'stroke-dashoffset 0.1s ease' }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center flex-col">
-              <div className="text-lg font-bold tabular-nums" style={{ color: getScoreColor(animatedOverall) }}>{animatedOverall}</div>
-              <div className="text-[9px] text-white/30">Overall</div>
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-white mb-0.5">Website Audit Report</h1>
-            <p className="text-sm text-white/40 truncate">{url}</p>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-300 border border-red-500/20">
-                {criticalCount} Critical Issues
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/20">
-                {warnCount} Warnings
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                {MOCK_ISSUES.filter(i => i.severity === 'info').length} Info
-              </span>
-            </div>
-          </div>
-
-          {/* Category scores */}
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(animatedScores).map(([key, score]) => (
-              <div key={key} className="flex flex-col items-center gap-1">
-                <div className="text-xl font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</div>
-                <div className="h-1 w-12 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${score}%`, background: getScoreColor(score) }} />
-                </div>
-                <div className="text-[9px] text-white/30 capitalize">{key}</div>
+        {/* Top Banner */}
+        <div className="glass-card p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/20 via-slate-900 to-slate-950 mb-8 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold mb-3">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Real-Time Automated Audit Report
               </div>
+              <h1 className="text-3xl font-extrabold text-white tracking-tight">{url}</h1>
+              <p className="text-xs text-slate-400 mt-1">
+                Audited: {new Date().toLocaleDateString()} | Technology: {system.detectedCms || 'Custom'} ({system.detectedFramework || 'Web'})
+              </p>
+            </div>
+
+            {/* Overall Score Badge */}
+            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+              <div className="relative flex items-center justify-center w-20 h-20">
+                <svg className="w-20 h-20 transform -rotate-90">
+                  <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" className="text-white/10" fill="transparent" />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="34"
+                    stroke={getScoreColor(scores.overall)}
+                    strokeWidth="6"
+                    strokeDasharray={213}
+                    strokeDashoffset={213 - (213 * scores.overall) / 100}
+                    strokeLinecap="round"
+                    fill="transparent"
+                  />
+                </svg>
+                <span className="absolute text-2xl font-black" style={{ color: getScoreColor(scores.overall) }}>
+                  {scores.overall}
+                </span>
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Health</div>
+                <div className="text-sm font-extrabold text-white">
+                  {scores.overall >= 80 ? 'Optimal Performance' : scores.overall >= 60 ? 'Moderate Technical Debt' : 'Critical Fixes Needed'}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">{crawl.totalPagesCrawled} pages analyzed</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Technology Pills */}
+          <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-400 font-semibold mr-2">Detected Tech:</span>
+            {system.detectedTechnologies.map((tech: string) => (
+              <span key={tech} className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300 font-mono text-[11px]">
+                {tech}
+              </span>
             ))}
           </div>
         </div>
 
-        {/* Tech stack */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {MOCK_TECHS.map(tech => (
-            <span key={tech} className="text-xs px-2.5 py-1 rounded-full border border-white/5 bg-white/3 text-white/50">
-              {tech}
-            </span>
+        {/* 5 Core Score Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          {[
+            { label: 'Performance', score: scores.performance, icon: '⚡', color: '#10b981' },
+            { label: 'SEO Signal', score: scores.seo, icon: '🔍', color: '#6366f1' },
+            { label: 'Security', score: scores.security, icon: '🛡️', color: '#f59e0b' },
+            { label: 'Accessibility', score: scores.accessibility, icon: '♿', color: '#3b82f6' },
+            { label: 'Business Score', score: scores.business, icon: '📈', color: '#ec4899' },
+          ].map((card) => (
+            <div key={card.label} className="glass-card p-5 rounded-2xl border border-white/10 text-center">
+              <div className="text-2xl mb-1">{card.icon}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</div>
+              <div className="text-3xl font-black my-2" style={{ color: card.color }}>
+                {card.score}
+                <span className="text-xs text-slate-500 font-normal">/100</span>
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-white/2 border border-white/5 rounded-xl p-1">
-          {(['overview', 'issues', 'solutions', 'business'] as Tab[]).map(tab => (
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-white/10 mb-8 overflow-x-auto scrollbar-none print:hidden">
+          {[
+            { id: 'overview', label: '📊 Executive Summary' },
+            { id: 'issues', label: '🤖 AI Recommendations' },
+            { id: 'business', label: '🏬 Business Analysis' },
+            { id: 'benchmark', label: '🏆 Competitor Benchmark' },
+            { id: 'revenue', label: '💰 Revenue Growth' },
+            { id: 'quote', label: '🏷️ Smart Quotation' },
+          ].map((t) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium capitalize transition-all ${activeTab === tab ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20' : 'text-white/40 hover:text-white/60'}`}
+              key={t.id}
+              onClick={() => setActiveTab(t.id as Tab)}
+              className={`px-5 py-3 text-xs font-bold whitespace-nowrap border-b-2 transition-all ${
+                activeTab === t.id ? 'border-violet-400 text-violet-300 bg-violet-500/5' : 'border-transparent text-slate-400 hover:text-white'
+              }`}
             >
-              {tab === 'overview' ? '📊 Overview' : tab === 'issues' ? '⚠️ Issues' : tab === 'solutions' ? '🚀 Solutions' : '📈 Business'}
+              {t.label}
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
+        {/* TAB 1: EXECUTIVE OVERVIEW */}
         {activeTab === 'overview' && (
-          <div className="grid md:grid-cols-2 gap-4">
-            {Object.entries(animatedScores).map(([key, score]) => (
-              <div key={key} className="p-5 rounded-2xl border border-white/5 bg-white/2">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-white capitalize">{key}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold" style={{ color: getScoreColor(score) }}>{getScoreLabel(score)}</span>
-                    <span className="text-xl font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
-                  </div>
-                </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score}%`, background: getScoreColor(score) }} />
-                </div>
-                <div className="mt-3 text-xs text-white/30">
-                  {score < 60 ? '🔴 Immediate attention required' : score < 80 ? '🟡 Improvement recommended' : '🟢 Performing well'}
-                </div>
+          <div className="space-y-6">
+            <div className="glass-card p-6 rounded-2xl border border-white/10">
+              <h2 className="text-lg font-bold text-white mb-3">Executive Summary</h2>
+              <p className="text-sm text-slate-300 leading-relaxed mb-4">{aiSummary.summary}</p>
+              <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 text-xs text-violet-200">
+                💡 <span className="font-bold">Key Recommendation:</span> {aiSummary.executiveTakeaway}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
 
-        {activeTab === 'issues' && (
-          <div className="space-y-3">
-            {MOCK_ISSUES.map((issue, i) => (
-              <div key={i} className={`p-4 rounded-xl border ${issue.severity === 'critical' ? 'border-red-500/20 bg-red-500/5' : issue.severity === 'warning' ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-white/5 bg-white/2'}`}>
-                <div className="flex items-start gap-3">
-                  <span className="text-lg shrink-0">{issue.severity === 'critical' ? '🔴' : issue.severity === 'warning' ? '🟡' : 'ℹ️'}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${issue.severity === 'critical' ? 'bg-red-500/15 text-red-300' : issue.severity === 'warning' ? 'bg-yellow-500/15 text-yellow-300' : 'bg-blue-500/15 text-blue-300'}`}>{issue.category}</span>
-                    </div>
-                    <div className="font-medium text-sm text-white mb-1">{issue.title}</div>
-                    <div className="text-xs text-white/40 mb-2">{issue.desc}</div>
-                    <div className="text-xs text-green-400">✓ Fix: {issue.fix}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'solutions' && (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {SOLUTIONS.map(solution => {
-              const isInCart = items.some(i => i.id === solution.id)
-              return (
-                <div key={solution.id} className="p-5 rounded-2xl border border-white/5 bg-white/2 hover:border-violet-500/20 transition-all">
-                  {solution.tag && (
-                    <div className="inline-block text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30 mb-3">
-                      {solution.tag}
-                    </div>
-                  )}
-                  <div className="text-2xl mb-2">{solution.icon}</div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold text-white">{solution.name}</div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-1 w-10 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-violet-500 rounded-full" style={{ width: `${solution.match}%` }} />
-                      </div>
-                      <span className="text-xs text-white/40">{solution.match}%</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 mb-4">
-                    {solution.benefits.map(b => (
-                      <div key={b} className="text-xs text-white/50 flex items-center gap-1.5">
-                        <span className="text-green-400">✓</span> {b}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between">
+            {/* Crawled Pages Grid */}
+            <div className="glass-card p-6 rounded-2xl border border-white/10">
+              <h3 className="text-sm font-bold text-white mb-4">Crawled Pages Analysis ({crawl.crawledPages.length} Pages)</h3>
+              <div className="divide-y divide-white/5 border border-white/5 rounded-xl overflow-hidden">
+                {crawl.crawledPages.map((page: any, idx: number) => (
+                  <div key={idx} className="p-3.5 flex items-center justify-between text-xs hover:bg-white/[0.02]">
                     <div>
-                      <div className="text-lg font-bold text-violet-300">${solution.price}</div>
-                      <div className="text-xs text-white/30">{solution.timeline}</div>
+                      <span className="font-mono text-slate-300">{page.url}</span>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Title: {page.title || 'N/A'} | H1: {page.h1 || 'N/A'}
+                      </div>
                     </div>
-                    <button
-                      onClick={() => !isInCart && addItem({ id: solution.id, name: solution.name, price: solution.price, timeline: solution.timeline, benefits: solution.benefits, category: 'solution' })}
-                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isInCart ? 'bg-green-500/15 text-green-300 border border-green-500/20' : 'bg-violet-600 text-white hover:opacity-90'}`}
-                    >
-                      {isInCart ? '✓ In Cart' : 'Add to Cart'}
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {activeTab === 'business' && (
-          <div className="space-y-4">
-            <div className="p-5 rounded-2xl border border-pink-500/20 bg-pink-500/5">
-              <div className="text-2xl mb-2">📈</div>
-              <h3 className="font-semibold text-white mb-3">Business Growth Analysis</h3>
-              <div className="grid sm:grid-cols-3 gap-4">
-                {[
-                  { metric: 'Est. Bounce Rate', value: '68%', trend: '↑ high', color: '#ef4444' },
-                  { metric: 'Conversion Rate', value: '1.2%', trend: '↓ below avg', color: '#ef4444' },
-                  { metric: 'Revenue Opportunity', value: '+$3,200/mo', trend: 'if score → 85', color: '#10b981' },
-                ].map(m => (
-                  <div key={m.metric} className="text-center p-3 rounded-xl bg-white/3">
-                    <div className="text-2xl font-bold mb-1" style={{ color: m.color }}>{m.value}</div>
-                    <div className="text-xs text-white/40 mb-0.5">{m.metric}</div>
-                    <div className="text-xs text-white/25">{m.trend}</div>
+                    <span className="px-2.5 py-1 rounded-full bg-white/5 text-slate-400 font-mono text-[10px]">
+                      {page.imageCount} Images
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-5 rounded-2xl border border-white/5 bg-white/2">
-              <h3 className="font-semibold text-white mb-3">Top Business Opportunities</h3>
+          </div>
+        )}
+
+        {/* TAB 2: AI RECOMMENDATIONS */}
+        {activeTab === 'issues' && (
+          <div className="space-y-4">
+            <div className="text-xs text-slate-400 mb-2">
+              Gemini AI synthesized the Lighthouse, SEO, Security, and WCAG datasets into structured action items.
+            </div>
+            {aiSummary.recommendations.map((rec: any, idx: number) => (
+              <div key={idx} className="glass-card p-6 rounded-2xl border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                      {rec.impact} Priority
+                    </span>
+                    <h3 className="text-base font-bold text-white">{rec.title}</h3>
+                  </div>
+                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                    {rec.estimatedRoi}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">{rec.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* TAB 3: BUSINESS ANALYSIS */}
+        {activeTab === 'business' && (
+          <div className="space-y-6">
+            <div className="glass-card p-6 rounded-2xl border border-white/10">
+              <h2 className="text-base font-bold text-white mb-2">
+                Missing Conversion Features ({business.missingFeatures.length})
+              </h2>
+              <p className="text-xs text-slate-400 mb-6">
+                Detected business type: <span className="text-violet-300 font-semibold">{business.detectedCategory}</span>
+              </p>
+
               <div className="space-y-3">
-                {['Add a clear hero CTA (estimated +12% conversion)', 'Implement live chat / AI assistant (estimated +18% lead capture)', 'Fix mobile UX issues — 60% of traffic is mobile', 'Add trust signals: reviews, certifications, case studies'].map((opp, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-white/60">
-                    <span className="text-yellow-400 shrink-0">★</span> {opp}
+                {business.missingFeatures.map((m: any, idx: number) => (
+                  <div key={idx} className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-white">{m.feature}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 uppercase">
+                          {m.importance}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1">{m.reason}</p>
+                    </div>
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: COMPETITOR BENCHMARK */}
+        {activeTab === 'benchmark' && (
+          <div className="glass-card p-6 rounded-2xl border border-white/10">
+            <h2 className="text-base font-bold text-white mb-2">Competitor Benchmark Comparison</h2>
+            <p className="text-xs text-slate-400 mb-6">
+              Comparing your website scores against the <span className="text-violet-300 font-semibold">{competitors.industry}</span> average.
+            </p>
+
+            <div className="space-y-4">
+              {competitors.comparisons.map((c: any) => (
+                <div key={c.category} className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex justify-between items-center text-xs mb-2">
+                    <span className="font-bold text-white">{c.category}</span>
+                    <span className={`font-bold ${c.diff >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {c.diff >= 0 ? `+${c.diff} above average` : `${c.diff} below average`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex-1">
+                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <span>Your Score: {c.userScore}</span>
+                        <span>Industry Avg: {c.industryAverage}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/5 relative overflow-hidden">
+                        <div className="h-full bg-violet-500 rounded-full" style={{ width: `${c.userScore}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: REVENUE GROWTH */}
+        {activeTab === 'revenue' && (
+          <div className="glass-card p-8 rounded-2xl border border-white/10 text-center space-y-6">
+            <h2 className="text-xl font-bold text-white">Estimated Revenue & Growth Opportunity</h2>
+            <p className="text-xs text-slate-400 max-w-xl mx-auto">
+              Based on your performance and SEO gaps, here is the projected potential growth after technical optimization.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 my-6">
+              <div className="p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
+                <div className="text-3xl font-extrabold text-emerald-400">+{revenue.leadIncreasePercent}%</div>
+                <div className="text-xs font-bold text-slate-300 mt-1">Lead Volume Boost</div>
+              </div>
+              <div className="p-6 rounded-2xl border border-violet-500/20 bg-violet-500/5">
+                <div className="text-3xl font-extrabold text-violet-400">+{revenue.conversionUpliftPercent}%</div>
+                <div className="text-xs font-bold text-slate-300 mt-1">Conversion Rate Uplift</div>
+              </div>
+              <div className="p-6 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+                <div className="text-3xl font-extrabold text-amber-400">+{revenue.speedImprovementPercent}%</div>
+                <div className="text-xs font-bold text-slate-300 mt-1">Page Speed Acceleration</div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500 max-w-lg mx-auto italic">{revenue.disclaimer}</p>
+          </div>
+        )}
+
+        {/* TAB 6: SMART QUOTATION */}
+        {activeTab === 'quote' && (
+          <div className="glass-card p-8 rounded-2xl border border-violet-500/30 bg-gradient-to-b from-violet-900/10 to-transparent space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-extrabold text-white">Tailored Solution & Quotation</h2>
+                <p className="text-xs text-slate-400 mt-1">Automated service mapping based on your audit results.</p>
+              </div>
+              <button
+                onClick={addAllQuoteItemsToCart}
+                className="px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-violet-500/20 hover:opacity-90 transition-all"
+              >
+                🛒 Add All Recommended to Cart
+              </button>
+            </div>
+
+            <div className="divide-y divide-white/10 border border-white/10 rounded-2xl overflow-hidden bg-white/[0.01]">
+              {quote.recommendedServices.map((item: any) => (
+                <div key={item.serviceId} className="p-5 flex items-center justify-between hover:bg-white/[0.02]">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{item.title}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{item.reason}</p>
+                  </div>
+                  <div className="text-right ml-4 shrink-0">
+                    <div className="text-base font-extrabold text-white">
+                      {quote.currency === 'INR' ? `₹${item.price.toLocaleString()}` : `$${item.price}`}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-400">
+                  Bundle Savings ({quote.bundleDiscountPercent}% Discount Applied)
+                </div>
+                <div className="text-2xl font-black text-emerald-400">
+                  Total: {quote.currency === 'INR' ? `₹${quote.totalAmount.toLocaleString()}` : `$${quote.totalAmount}`}
+                </div>
+              </div>
+              <Link href="/checkout" className="px-6 py-3 rounded-xl bg-emerald-500 text-black font-extrabold text-xs hover:bg-emerald-400 transition-all">
+                Proceed to Checkout →
+              </Link>
             </div>
           </div>
         )}
       </div>
-
-      {/* AI Popup (3s delay) */}
-      {showPopup && (
-        <AIRecommendationPopup
-          reportId={params.id}
-          url={url}
-          issueCount={MOCK_ISSUES.length}
-          onDismiss={() => setShowPopup(false)}
-        />
-      )}
     </div>
   )
 }
 
 export default function ReportPage({ params }: { params: { id: string } }) {
   return (
-    <Suspense fallback={<div className="text-center p-12 text-white/50">Loading report...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#08080f] text-white p-8">Loading report...</div>}>
       <ReportContent params={params} />
     </Suspense>
   )

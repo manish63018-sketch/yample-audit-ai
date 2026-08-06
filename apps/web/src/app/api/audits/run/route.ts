@@ -4,7 +4,7 @@ import { AuditOrchestrator } from '@modules/audit/auditOrchestrator'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { url, websiteId, organizationId, options } = body
+    const { url, businessCategory, country, businessGoal, websiteId, organizationId, options } = body
 
     if (!url || typeof url !== 'string') {
       return NextResponse.json(
@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     // Execute audit orchestrator
     const result = await AuditOrchestrator.execute({
       url: formattedUrl,
+      businessCategory,
+      country,
+      businessGoal,
       websiteId,
       organizationId,
       options,
