@@ -8,6 +8,7 @@ import { Navbar } from '@/components/layout/navbar'
 import { useCart } from '@/context/CartContext'
 import { AIAssistantBot } from '@/components/journey/AIAssistantBot'
 import { ComparePlansTable } from '@/components/pricing/ComparePlansTable'
+import { WhatsIncludedSection } from '@/components/sections/WhatsIncludedSection'
 import { ArrowRight, Search, Zap, CheckCircle2, ShieldCheck, TrendingUp, Award, Clock } from 'lucide-react'
 
 /* ─── Data ─────────────────────────────────────────────────────────── */
@@ -472,6 +473,11 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* ═══════════════════════════════════════════════════════
+            4.5 WHAT'S INCLUDED & WHY CHOOSE US
+        ═══════════════════════════════════════════════════════ */}
+        <WhatsIncludedSection />
 
         {/* ═══════════════════════════════════════════════════════
             5. TRANSPARENT PRICING
