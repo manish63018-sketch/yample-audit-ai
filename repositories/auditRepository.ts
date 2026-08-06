@@ -1,4 +1,6 @@
-import supabaseAdmin from '../lib/supabaseServer'
+import { createAdminSupabaseClient } from '@auditai/db'
+
+const supabaseAdmin = createAdminSupabaseClient()
 
 export const createAudit = async (audit: { website_id: string; organization_id: string; user_id?: string; url: string }) => {
   const { data, error } = await supabaseAdmin.from('audits').insert([{

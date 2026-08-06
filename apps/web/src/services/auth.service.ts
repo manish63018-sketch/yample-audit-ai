@@ -1,5 +1,5 @@
-import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import {
+  createSupabaseClient,
   UserRepository,
   OrganizationRepository,
 } from '@auditai/db'
@@ -25,7 +25,7 @@ export interface AuthSession {
 
 export class AuthService {
   private static getClient() {
-    return getSupabaseBrowserClient()
+    return createSupabaseClient()
   }
 
   /**

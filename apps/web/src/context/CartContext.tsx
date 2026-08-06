@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react'
 
 export interface CartItem {
   id: string
@@ -11,17 +11,29 @@ export interface CartItem {
   category: string
 }
 
+export function getBundleDiscountPercentage(itemCount: number): number {
+  if (itemCount >= 7) return 20
+  if (itemCount >= 5) return 15
+  if (itemCount >= 3) return 10
+  if (itemCount >= 2) return 5
+  return 0
+}
+
 interface CartContextType {
   items: CartItem[]
   addItem: (item: CartItem) => void
   removeItem: (id: string) => void
   clearCart: () => void
-  total: number
-  discount: number
+  total: number // subtotal
+  discount: number // promo/international timer discount
   setDiscount: (amount: number) => void
   discountLabel: string
   setDiscountLabel: (label: string) => void
   itemCount: number
+  bundleDiscountPct: number
+  bundleDiscountAmount: number
+  totalSavings: number
+  finalTotal: number
 }
 
 const CartContext = createContext<CartContextType | null>(null)
@@ -78,7 +90,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('auditai_discount_label', label)
   }
 
-  const total = items.reduce((sum, item) => sum + item.price, 0)
+  const total = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items])
+
+  const bundleDiscountPct = useMemo(() => getBundleDiscountPercentage(items.length), [items.length])
+
+  const bundleDiscountAmount = useMemo(() => {
+    if (bundleDiscountPct === 0) return 0
+    return Math.round((total * bundleDiscountPct) / 100 * 100) / 100
+  }, [total, bundleDiscountPct])
+
+  const totalSavings = useMemo(() => bundleDiscountAmount + discount, [bundleDiscountAmount, discount])
+
+  const finalTotal = useMemo(() => Math.max(0, total - totalSavings), [total, totalSavings])
 
   return (
     <CartContext.Provider value={{
@@ -92,6 +115,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       discountLabel,
       setDiscountLabel: handleSetDiscountLabel,
       itemCount: items.length,
+      bundleDiscountPct,
+      bundleDiscountAmount,
+      totalSavings,
+      finalTotal,
     }}>
       {children}
     </CartContext.Provider>

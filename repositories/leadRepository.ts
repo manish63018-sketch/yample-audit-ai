@@ -1,4 +1,6 @@
-import supabaseAdmin from '../lib/supabaseServer'
+import { createAdminSupabaseClient } from '@auditai/db'
+
+const supabaseAdmin = createAdminSupabaseClient()
 import auditRepo from './auditRepository'
 
 export async function findLeadByWebsite(website: string) {

@@ -1,7 +1,9 @@
 
 import leadRepo from '../repositories/leadRepository'
 import { processAudit } from './pipelineManager'
-import supabaseAdmin from '../lib/supabaseServer'
+import { createAdminSupabaseClient } from '@auditai/db'
+
+const supabaseAdmin = createAdminSupabaseClient()
 
 export async function ingestLeadFromUrl(url: string, source: string = 'manual', organization_id: string | null = null) {
   // Create lead record

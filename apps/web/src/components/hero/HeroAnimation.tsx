@@ -2,197 +2,233 @@
 
 import { useEffect, useState } from 'react'
 
-const PHASES = [
-  { icon: '💻', label: 'Laptop opens your website...', color: '#6366f1' },
-  { icon: '🌐', label: 'Website loads...', color: '#8b5cf6' },
-  { icon: '🤖', label: 'AI begins scanning...', color: '#a855f7' },
-  { icon: '⚠️', label: 'Issues detected...', color: '#f59e0b' },
-  { icon: '📊', label: 'Report generated...', color: '#10b981' },
-  { icon: '📄', label: 'Proposal prepared...', color: '#3b82f6' },
-  { icon: '🎉', label: 'Client is growing!', color: '#ec4899' },
-]
-
-const SCAN_LINES = [
-  'Checking Core Web Vitals...',
-  'Analyzing SEO signals...',
-  'Testing mobile responsiveness...',
-  'Scanning security headers...',
-  'Evaluating business conversion paths...',
-  'Generating AI recommendations...',
+const STAGES = [
+  { id: 1, title: 'Website URL', icon: '🌐', subtitle: 'https://clientwebsite.com', color: '#4F8CFF' },
+  { id: 2, title: 'Scanning...', icon: '⚡', subtitle: 'Analyzing Core Web Vitals & Security', color: '#8B5CF6' },
+  { id: 3, title: 'Scores & Audit', icon: '📊', subtitle: 'Perf 48 → 92 | SEO 67 → 100', color: '#38BDF8' },
+  { id: 4, title: 'Generating AI Report', icon: '🤖', subtitle: 'Building AI Growth Intelligence Roadmap', color: '#A855F7' },
+  { id: 5, title: 'Recommendations', icon: '💡', subtitle: '4 Critical High-Impact Fixes Identified', color: '#F59E0B' },
+  { id: 6, title: 'Estimated Revenue Growth', icon: '📈', subtitle: '+44% Projected Conversion Boost', color: '#22C55E' },
+  { id: 7, title: 'Project Cost', icon: '🏷️', subtitle: 'Fixed Investment: $599 – $1,999', color: '#EC4899' },
+  { id: 8, title: 'Order Ready', icon: '🛒', subtitle: '1-Click Project Checkout Enabled', color: '#10B981' },
 ]
 
 export function HeroAnimation() {
-  const [phase, setPhase] = useState(0)
-  const [scanLine, setScanLine] = useState(0)
+  const [currentStageIndex, setCurrentStageIndex] = useState(0)
   const [progress, setProgress] = useState(0)
-  const [showReport, setShowReport] = useState(false)
-  const [scores, setScores] = useState([0, 0, 0, 0, 0])
 
   useEffect(() => {
-    const phaseTimer = setInterval(() => {
-      setPhase(p => {
-        const next = (p + 1) % PHASES.length
-        if (next === 2) setProgress(0)
-        if (next === 4) setShowReport(true)
-        return next
-      })
-    }, 1800)
-
-    const scanTimer = setInterval(() => {
-      setScanLine(s => (s + 1) % SCAN_LINES.length)
-    }, 900)
-
-    return () => {
-      clearInterval(phaseTimer)
-      clearInterval(scanTimer)
-    }
+    const timer = setInterval(() => {
+      setCurrentStageIndex(prev => (prev + 1) % STAGES.length)
+    }, 2400)
+    return () => clearInterval(timer)
   }, [])
 
   useEffect(() => {
-    if (phase >= 2 && phase < 4) {
-      const t = setInterval(() => {
-        setProgress(p => Math.min(p + 3, 100))
-      }, 40)
-      return () => clearInterval(t)
-    }
-  }, [phase])
+    setProgress(0)
+    const pTimer = setInterval(() => {
+      setProgress(p => (p < 100 ? p + 5 : 100))
+    }, 100)
+    return () => clearInterval(pTimer)
+  }, [currentStageIndex])
 
-  useEffect(() => {
-    if (showReport) {
-      const targets = [92, 88, 95, 78, 84]
-      targets.forEach((target, i) => {
-        setTimeout(() => {
-          setScores(prev => {
-            const next = [...prev]
-            next[i] = target
-            return next
-          })
-        }, i * 150)
-      })
-    }
-  }, [showReport])
-
-  const current = PHASES[phase]
-  const categories = ['Performance', 'SEO', 'Security', 'Accessibility', 'Business']
-  const colors = ['#10b981', '#6366f1', '#f59e0b', '#3b82f6', '#ec4899']
+  const stage = STAGES[currentStageIndex]
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto select-none">
-      {/* Laptop frame */}
-      <div className="relative">
-        {/* Screen */}
-        <div
-          className="rounded-xl overflow-hidden border border-white/10 bg-[#0a0a0f] shadow-2xl"
-          style={{
-            boxShadow: `0 0 60px ${current.color}22, 0 0 120px ${current.color}11`,
-            transition: 'box-shadow 0.8s ease',
-          }}
-        >
-          {/* Browser chrome */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-[#111118] border-b border-white/5">
-            <div className="flex gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+    <div className="relative w-full max-w-xl mx-auto select-none">
+      {/* Glow aura */}
+      <div
+        className="absolute inset-0 rounded-3xl blur-3xl opacity-30 transition-all duration-700 pointer-events-none"
+        style={{ background: stage.color }}
+      />
+
+      {/* Main SaaS Dashboard Container */}
+      <div className="relative rounded-2xl border border-white/10 bg-[#0F172A]/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+        {/* Top Browser Bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-[#050816]/90 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-red-500/80" />
+            <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
+            <span className="w-3 h-3 rounded-full bg-green-500/80" />
+          </div>
+          <div className="flex-1 mx-4 px-3 py-1 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2">
+            <span className="text-[11px] text-slate-400 font-mono truncate">https://your-website.com</span>
+          </div>
+          <div className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            LIVE SCAN
+          </div>
+        </div>
+
+        {/* Workflow Pipeline Header Steps */}
+        <div className="px-4 py-3 bg-[#050816]/50 border-b border-white/5 flex items-center justify-between gap-1 overflow-x-auto scrollbar-none">
+          {STAGES.map((s, i) => {
+            const isActive = i === currentStageIndex
+            const isPassed = i < currentStageIndex
+            return (
+              <button
+                key={s.id}
+                onClick={() => setCurrentStageIndex(i)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40 shadow-sm shadow-purple-500/20'
+                    : isPassed
+                    ? 'text-slate-400 bg-white/5'
+                    : 'text-slate-600 bg-transparent'
+                }`}
+              >
+                <span>{s.icon}</span>
+                <span className="hidden sm:inline">{s.title.split(' ')[0]}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Stage Content Screen */}
+        <div className="p-6 min-h-[280px] flex flex-col justify-between">
+          {/* Active Stage Banner */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-lg border"
+                style={{ background: `${stage.color}20`, borderColor: `${stage.color}40` }}
+              >
+                {stage.icon}
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-medium">Stage {stage.id} of 8</div>
+                <div className="text-base font-bold text-white tracking-tight">{stage.title}</div>
+              </div>
             </div>
-            <div className="flex-1 bg-white/5 rounded-md h-5 mx-4 flex items-center px-3">
-              <span className="text-[10px] text-white/30 font-mono">
-                {phase >= 1 ? 'https://yourclient.com' : ''}
-              </span>
+            <div className="text-right">
+              <span className="text-xs font-mono font-bold text-slate-300">{progress}%</span>
             </div>
           </div>
 
-          {/* Screen content */}
-          <div className="h-48 md:h-64 relative overflow-hidden p-4">
-            {/* Phase label */}
-            <div
-              className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium z-10 backdrop-blur-sm"
-              style={{ background: `${current.color}22`, border: `1px solid ${current.color}44`, color: current.color, transition: 'all 0.4s ease' }}
-            >
-              <span>{current.icon}</span>
-              <span>{current.label}</span>
-            </div>
-
-            {/* Scanning animation (phases 2-3) */}
-            {phase >= 2 && phase < 4 && (
-              <div className="absolute inset-x-0 bottom-0 top-10 flex flex-col gap-1 px-4 py-2">
-                {/* Scan line */}
-                <div
-                  className="absolute inset-x-4 h-[2px] opacity-70 transition-all duration-100"
-                  style={{ background: `linear-gradient(90deg, transparent, ${current.color}, transparent)`, top: `${progress}%` }}
-                />
-                {/* Live message */}
-                <div className="absolute bottom-3 left-4 right-4">
-                  <div className="text-[11px] text-white/50 font-mono animate-pulse">
-                    ▶ {SCAN_LINES[scanLine]}
-                  </div>
-                  <div className="mt-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-100"
-                      style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${current.color}, #ec4899)` }}
-                    />
-                  </div>
+          {/* Dynamic Content Display per Stage */}
+          <div className="flex-1 my-2">
+            {stage.id === 1 && (
+              <div className="space-y-3 animate-fade-in">
+                <div className="text-xs text-slate-400">Target Website:</div>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 font-mono text-sm text-purple-300 flex items-center justify-between">
+                  <span>https://yourclientwebsite.com</span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">Ready</span>
                 </div>
-                {/* Grid overlay */}
-                <div className="absolute inset-0 opacity-10"
-                  style={{ backgroundImage: `repeating-linear-gradient(0deg, ${current.color} 0, ${current.color} 1px, transparent 1px, transparent 24px), repeating-linear-gradient(90deg, ${current.color} 0, ${current.color} 1px, transparent 1px, transparent 24px)` }} />
+                <div className="text-[11px] text-slate-500">Pressing &apos;Analyze&apos; initiates instant AI web diagnostic...</div>
               </div>
             )}
 
-            {/* Report preview (phases 4-6) */}
-            {showReport && phase >= 4 && (
-              <div className="absolute inset-x-3 top-10 bottom-2 grid grid-cols-5 gap-1.5 px-1">
-                {categories.map((cat, i) => (
-                  <div key={cat} className="flex flex-col items-center justify-center bg-white/3 rounded-lg border border-white/5 p-1">
-                    <div className="text-[18px] font-bold tabular-nums" style={{ color: colors[i], transition: 'all 0.5s ease' }}>
-                      {scores[i]}
+            {stage.id === 2 && (
+              <div className="space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300">Scanning Core Web Vitals & Security...</span>
+                  <span className="text-purple-400 font-mono">Analyzing...</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-400 transition-all duration-150" style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400 font-mono">
+                    <div className="p-1.5 rounded bg-white/3">✓ LCP & CLS timing</div>
+                    <div className="p-1.5 rounded bg-white/3">✓ On-Page Meta Hierarchy</div>
+                    <div className="p-1.5 rounded bg-white/3">✓ SSL & Security Headers</div>
+                    <div className="p-1.5 rounded bg-white/3">✓ Conversion Path Friction</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {stage.id === 3 && (
+              <div className="grid grid-cols-2 gap-2 animate-fade-in">
+                {[
+                  { name: 'Performance', before: 48, after: 92, boost: '+44' },
+                  { name: 'SEO Signal', before: 67, after: 100, boost: '+33' },
+                  { name: 'Accessibility', before: 71, after: 96, boost: '+25' },
+                  { name: 'Business Score', before: 42, after: 89, boost: '+47' },
+                ].map(s => (
+                  <div key={s.name} className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] text-slate-400">{s.name}</div>
+                      <div className="text-sm font-bold text-slate-300">
+                        <span className="line-through text-slate-500 text-xs">{s.before}</span> → <span className="text-emerald-400">{s.after}</span>
+                      </div>
                     </div>
-                    <div className="text-[8px] text-white/40 text-center leading-tight mt-0.5">{cat}</div>
-                    <div className="mt-1 w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${scores[i]}%`, background: colors[i] }} />
-                    </div>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      {s.boost}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Happy client (phase 6) */}
-            {phase === 6 && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-4xl mb-2 animate-bounce">🎉</div>
-                  <div className="text-sm text-white/60">Business is growing!</div>
-                  <div className="text-xs text-green-400 mt-1">+34% conversion increase</div>
+            {stage.id === 4 && (
+              <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 text-center animate-fade-in">
+                <div className="text-3xl mb-1">🤖</div>
+                <div className="text-xs font-bold text-purple-200">AI Growth Intelligence Report Ready</div>
+                <div className="text-[11px] text-slate-400 mt-1">Generated 18 specific code & UX optimization instructions for your engineering team.</div>
+              </div>
+            )}
+
+            {stage.id === 5 && (
+              <div className="space-y-1.5 animate-fade-in text-xs">
+                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center gap-2">
+                  <span>🚀</span> <span>Accelerate LCP load speed under 1.5s</span>
+                </div>
+                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 flex items-center gap-2">
+                  <span>🎯</span> <span>Fix Hero CTA friction & add Trust signals</span>
+                </div>
+                <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 flex items-center gap-2">
+                  <span>🤖</span> <span>Deploy 24/7 AI Lead Qualifier Assistant</span>
                 </div>
               </div>
             )}
+
+            {stage.id === 6 && (
+              <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-center animate-fade-in">
+                <div className="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Projected Impact</div>
+                <div className="text-3xl font-extrabold text-white my-1">+44% Revenue Growth</div>
+                <div className="text-[11px] text-slate-400">Based on standard conversion improvement metrics after full site optimization.</div>
+              </div>
+            )}
+
+            {stage.id === 7 && (
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-between animate-fade-in">
+                <div>
+                  <div className="text-xs text-slate-400">Fixed Package Proposal</div>
+                  <div className="text-xl font-bold text-white">$599 – $1,999</div>
+                  <div className="text-[10px] text-slate-400">7-Day turn-around • No hidden fees</div>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold">
+                  Guaranteed ROI
+                </div>
+              </div>
+            )}
+
+            {stage.id === 8 && (
+              <div className="p-4 rounded-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-purple-500/30 flex items-center justify-between animate-fade-in">
+                <div>
+                  <div className="text-xs font-bold text-white">Ready to Transform Your Website?</div>
+                  <div className="text-[11px] text-slate-400">1-Click checkout ready for instant deployment.</div>
+                </div>
+                <button className="btn-gradient-primary px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-purple-500/30">
+                  Order Now →
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Progress Bar Footer */}
+          <div className="pt-2 border-t border-white/5">
+            <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-100"
+                style={{ width: `${progress}%`, background: stage.color }}
+              />
+            </div>
           </div>
         </div>
-
-        {/* Laptop base */}
-        <div className="h-3 bg-[#111118] rounded-b-xl border-x border-b border-white/5 mx-4" />
-        <div className="h-1.5 bg-[#0d0d12] rounded-b-2xl border-x border-b border-white/5 mx-2" />
-      </div>
-
-      {/* Floating badges */}
-      <div
-        className="absolute -left-8 top-1/3 px-3 py-1.5 rounded-full text-[11px] font-medium shadow-lg backdrop-blur-sm animate-float"
-        style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#818cf8' }}
-      >
-        🔍 SEO Score: 88
-      </div>
-      <div
-        className="absolute -right-8 top-1/4 px-3 py-1.5 rounded-full text-[11px] font-medium shadow-lg backdrop-blur-sm animate-float-delayed"
-        style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}
-      >
-        ⚡ Performance: 92
-      </div>
-      <div
-        className="absolute -right-6 top-2/3 px-3 py-1.5 rounded-full text-[11px] font-medium shadow-lg backdrop-blur-sm animate-float"
-        style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)', color: '#f472b6' }}
-      >
-        🤖 AI Report Ready
       </div>
     </div>
   )
 }
+

@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { AuthProvider } from '@/providers/auth-provider'
 import { CartProvider } from '@/context/CartContext'
+import { GeoProvider } from '@/context/GeoContext'
 
 /**
  * Root layout — wraps every page in the application.
@@ -105,7 +106,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Skip to main content
         </a>
 
-        <AuthProvider><CartProvider>{children}</CartProvider></AuthProvider>
+        <AuthProvider><GeoProvider><CartProvider>{children}</CartProvider></GeoProvider></AuthProvider>
       </body>
     </html>
   )

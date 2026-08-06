@@ -4,11 +4,16 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/context/CartContext'
+import { useGeo } from '@/context/GeoContext'
+import { CurrencyToggle } from '@/components/CurrencyToggle'
+import { InternationalOfferBanner } from '@/components/InternationalOfferBanner'
 
 export default function CheckoutPage() {
   const { items, total, discount, discountLabel, clearCart } = useCart()
+  const { formatPrice, activeCurrency, isInternational, transferFee, geo } = useGeo()
   const router = useRouter()
-  const finalTotal = total - discount
+
+  const finalTotalUSD = total - discount + (isInternational ? transferFee : 0)
   const maxTimeline = items.length > 0 ? Math.max(...items.map(i => parseInt(i.timeline) || 7)) : 0
 
   const [form, setForm] = useState({ name: '', business: '', email: '', phone: '', instagram: '', company: '', message: '' })
@@ -33,8 +38,10 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           ...form,
           services: items.map(i => i.name).join(', '),
-          total: finalTotal,
+          total: finalTotalUSD,
           discount,
+          currency: activeCurrency.code,
+          country: geo.country,
           source: 'checkout_proposal',
         }),
       })
@@ -61,6 +68,7 @@ export default function CheckoutPage() {
           customerEmail: form.email,
           discount,
           discountLabel,
+          currency: activeCurrency.code,
         }),
       })
       const data = await res.json()
@@ -81,113 +89,155 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#08080f] text-white">
       {/* Header */}
       <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between max-w-7xl mx-auto">
-        <Link href="/cart" className="text-white/60 hover:text-white transition-colors text-sm">← Edit Cart</Link>
-        <h1 className="text-lg font-bold text-white">📋 Project Summary</h1>
-        <div className="text-xs text-white/30">Step 3 of 3</div>
+        <Link href="/cart" className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-1">
+          ← Edit Cart
+        </Link>
+        <h1 className="text-lg font-bold text-white">📋 Checkout & Order</h1>
+        <div className="flex items-center gap-3">
+          <CurrencyToggle />
+          <span className="text-xs text-white/30">Step 3 of 3</span>
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-8">
-        {/* Left: Summary */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-white mb-4">Your Growth Plan</h2>
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <InternationalOfferBanner />
 
-          {/* Services */}
-          {items.map(item => (
-            <div key={item.id} className="p-4 rounded-xl border border-white/5 bg-white/2">
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-medium text-white text-sm">{item.name}</div>
-                <div className="text-sm font-bold text-violet-300">${item.price.toLocaleString()}</div>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Left: Summary */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-white mb-4">Your Growth Plan</h2>
+
+            {/* Services */}
+            {items.map(item => (
+              <div key={item.id} className="p-4 rounded-xl border border-white/5 bg-white/2">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="font-medium text-white text-sm">{item.name}</div>
+                  <div className="text-sm font-bold text-violet-300">{formatPrice(item.price)}</div>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {item.benefits.map(b => (
+                    <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-white/3 text-white/40 border border-white/5">✓ {b}</span>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {item.benefits.map(b => (
-                  <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-white/3 text-white/40 border border-white/5">✓ {b}</span>
+            ))}
+
+            {/* Totals */}
+            <div className="rounded-xl border border-white/5 bg-white/2 p-4 space-y-2 text-sm">
+              <div className="flex justify-between text-white/50">
+                <span>Subtotal</span>
+                <span>{formatPrice(total)}</span>
+              </div>
+
+              {discount > 0 && (
+                <div className="flex justify-between text-green-400">
+                  <span>🎁 {discountLabel}</span>
+                  <span>-{formatPrice(discount)}</span>
+                </div>
+              )}
+
+              {isInternational && transferFee > 0 && (
+                <div className="flex justify-between text-white/40 text-xs">
+                  <span>Est. Bank Transfer Fee</span>
+                  <span>{formatPrice(transferFee)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-white/40 text-xs">
+                <span>Tax</span>
+                <span>{formatPrice(0)}</span>
+              </div>
+
+              {maxTimeline > 0 && (
+                <div className="flex justify-between text-white/40 text-xs">
+                  <span>Est. Delivery</span>
+                  <span>{maxTimeline} days</span>
+                </div>
+              )}
+
+              <div className="flex justify-between font-bold text-white text-base pt-2 border-t border-white/5">
+                <span>Total Investment</span>
+                <span className="text-violet-300">{formatPrice(finalTotalUSD)}</span>
+              </div>
+
+              {isInternational && (
+                <div className="text-[11px] text-white/30 pt-1">
+                  * Estimated bank transfer fee depends on your local payment provider.
+                </div>
+              )}
+            </div>
+
+            {/* What happens next */}
+            <div className="rounded-xl border border-violet-500/10 bg-violet-500/5 p-4">
+              <div className="text-xs font-semibold text-violet-300 mb-3">What Happens After You Submit</div>
+              <div className="space-y-2">
+                {[
+                  '✅ Instant email & Quote ID confirmation',
+                  '📞 Senior architect assigned within 2 hours',
+                  '📄 Formal SOW proposal with scope & deliverables',
+                  '🚀 Kickoff call scheduled at your convenience',
+                ].map((s, i) => (
+                  <div key={i} className="text-xs text-white/50">{s}</div>
                 ))}
               </div>
             </div>
-          ))}
-
-          {/* Totals */}
-          <div className="rounded-xl border border-white/5 bg-white/2 p-4 space-y-2 text-sm">
-            <div className="flex justify-between text-white/50"><span>Subtotal</span><span>${total.toLocaleString()}</span></div>
-            {discount > 0 && <div className="flex justify-between text-green-400"><span>🎁 {discountLabel}</span><span>-${discount.toLocaleString()}</span></div>}
-            <div className="flex justify-between text-white/40 text-xs"><span>Tax</span><span>$0</span></div>
-            {maxTimeline > 0 && <div className="flex justify-between text-white/40 text-xs"><span>Est. Delivery</span><span>{maxTimeline} days</span></div>}
-            <div className="flex justify-between font-bold text-white text-base pt-2 border-t border-white/5">
-              <span>Total Investment</span>
-              <span className="text-violet-300">${finalTotal.toLocaleString()}</span>
-            </div>
           </div>
 
-          {/* What happens next */}
-          <div className="rounded-xl border border-violet-500/10 bg-violet-500/5 p-4">
-            <div className="text-xs font-semibold text-violet-300 mb-3">What Happens After You Submit</div>
-            <div className="space-y-2">
-              {[
-                '✅ Instant email confirmation',
-                '📞 Team reaches out within 24 hours',
-                '📄 Formal proposal with scope & deliverables',
-                '🚀 Kickoff call scheduled at your convenience',
-              ].map((s, i) => (
-                <div key={i} className="text-xs text-white/50">{s}</div>
-              ))}
-            </div>
+          {/* Right: Form & Options */}
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4">Your Details</h2>
+            <form onSubmit={handleSubmitProposal} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-white/40 mb-1">Full Name *</label>
+                  <input name="name" value={form.name} onChange={handleChange} placeholder="John Doe" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/40 mb-1">Business Name</label>
+                  <input name="business" value={form.business} onChange={handleChange} placeholder="Acme Inc." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 mb-1">Email Address *</label>
+                <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@company.com" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-white/40 mb-1">Phone *</label>
+                  <input name="phone" value={form.phone} onChange={handleChange} placeholder="+1 234 567 8900" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/40 mb-1">Instagram / LinkedIn</label>
+                  <input name="instagram" value={form.instagram} onChange={handleChange} placeholder="@yourhandle" className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 mb-1">Message / Additional Info</label>
+                <textarea name="message" value={form.message} onChange={handleChange} rows={3} placeholder="Tell us about your business goals, timeline requirements, or any specific requests..." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors resize-none" />
+              </div>
+              {error && <p className="text-red-400 text-sm">{error}</p>}
+
+              <div className="pt-2 space-y-3">
+                <button
+                  type="submit"
+                  disabled={submitting || payingStripe || items.length === 0}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-base hover:opacity-90 transition-all shadow-xl shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? '⏳ Submitting...' : '📄 Request Free Formal Proposal'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleStripeCheckout}
+                  disabled={submitting || payingStripe || items.length === 0}
+                  className="w-full py-3.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 font-bold text-base hover:bg-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {payingStripe ? '⏳ Connecting to Stripe...' : `💳 Pay Online (${activeCurrency.symbol}${activeCurrency.code}) via Stripe →`}
+                </button>
+              </div>
+              <p className="text-xs text-white/20 text-center">No risk. Proposal option requires 0 payment upfront.</p>
+            </form>
           </div>
-        </div>
-
-        {/* Right: Form & Options */}
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4">Your Details</h2>
-          <form onSubmit={handleSubmitProposal} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-white/40 mb-1">Full Name *</label>
-                <input name="name" value={form.name} onChange={handleChange} placeholder="John Doe" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
-              </div>
-              <div>
-                <label className="block text-xs text-white/40 mb-1">Business Name</label>
-                <input name="business" value={form.business} onChange={handleChange} placeholder="Acme Inc." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-white/40 mb-1">Email Address *</label>
-              <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@company.com" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-white/40 mb-1">Phone *</label>
-                <input name="phone" value={form.phone} onChange={handleChange} placeholder="+1 234 567 8900" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
-              </div>
-              <div>
-                <label className="block text-xs text-white/40 mb-1">Instagram Handle</label>
-                <input name="instagram" value={form.instagram} onChange={handleChange} placeholder="@yourhandle" className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-white/40 mb-1">Message / Additional Info</label>
-              <textarea name="message" value={form.message} onChange={handleChange} rows={3} placeholder="Tell us about your business goals, timeline requirements, or any specific requests..." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 transition-colors resize-none" />
-            </div>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-
-            <div className="pt-2 space-y-3">
-              <button
-                type="submit"
-                disabled={submitting || payingStripe || items.length === 0}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-base hover:opacity-90 transition-all shadow-xl shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? '⏳ Submitting...' : '📄 Request Free Proposal'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleStripeCheckout}
-                disabled={submitting || payingStripe || items.length === 0}
-                className="w-full py-3.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 font-bold text-base hover:bg-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {payingStripe ? '⏳ Connecting to Stripe...' : '💳 Pay Online via Stripe →'}
-              </button>
-            </div>
-            <p className="text-xs text-white/20 text-center">No risk. Proposal option requires 0 payment upfront.</p>
-          </form>
         </div>
       </div>
     </div>

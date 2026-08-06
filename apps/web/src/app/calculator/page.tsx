@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useCart } from '@/context/CartContext'
+import { useCart, getBundleDiscountPercentage } from '@/context/CartContext'
+import { useGeo } from '@/context/GeoContext'
+import { CurrencyToggle } from '@/components/CurrencyToggle'
+import { InternationalOfferBanner } from '@/components/InternationalOfferBanner'
 
 const STEPS = [
   {
@@ -33,7 +36,7 @@ const STEPS = [
     icon: '⚙️',
     sub: 'Dashboard to manage content, orders, users, or inventory',
     options: [
-      { label: 'Yes, I need an admin dashboard', value: 'yes', price: 300 },
+      { label: 'Yes, I need an admin dashboard', value: 'yes', price: 149 },
       { label: 'No admin panel needed', value: 'no', price: 0 },
     ],
   },
@@ -43,7 +46,7 @@ const STEPS = [
     icon: '🤖',
     sub: '24/7 customer support bot, lead qualification, FAQ automation',
     options: [
-      { label: 'Yes — AI Customer Assistant', value: 'yes', price: 500 },
+      { label: 'Yes — AI Customer Assistant', value: 'yes', price: 199 },
       { label: 'Not right now', value: 'no', price: 0 },
     ],
   },
@@ -53,7 +56,7 @@ const STEPS = [
     icon: '📋',
     sub: 'Manage leads, pipeline, follow-ups, and customer data',
     options: [
-      { label: 'Yes — full CRM system', value: 'yes', price: 400 },
+      { label: 'Yes — full CRM system', value: 'yes', price: 249 },
       { label: 'Not needed', value: 'no', price: 0 },
     ],
   },
@@ -63,7 +66,7 @@ const STEPS = [
     icon: '📅',
     sub: 'Online appointments, reservations, or scheduling',
     options: [
-      { label: 'Yes — online booking', value: 'yes', price: 350 },
+      { label: 'Yes — online booking', value: 'yes', price: 149 },
       { label: 'No booking needed', value: 'no', price: 0 },
     ],
   },
@@ -73,7 +76,7 @@ const STEPS = [
     icon: '🏪',
     sub: 'Point of sale for in-store payments, inventory, and receipts',
     options: [
-      { label: 'Yes — POS for my business', value: 'yes', price: 600 },
+      { label: 'Yes — POS for my business', value: 'yes', price: 349 },
       { label: 'Not required', value: 'no', price: 0 },
     ],
   },
@@ -83,7 +86,7 @@ const STEPS = [
     icon: '📱',
     sub: 'iOS & Android app for customers or team',
     options: [
-      { label: 'Yes — mobile app', value: 'yes', price: 800 },
+      { label: 'Yes — mobile app', value: 'yes', price: 799 },
       { label: 'Website only is fine', value: 'no', price: 0 },
     ],
   },
@@ -93,7 +96,7 @@ const STEPS = [
     icon: '🔍',
     sub: 'Monthly keyword tracking, content strategy, and ranking growth',
     options: [
-      { label: 'Yes — monthly SEO package', value: 'yes', price: 200 },
+      { label: 'Yes — monthly SEO package', value: 'yes', price: 99 },
       { label: 'One-time audit only', value: 'no', price: 0 },
     ],
   },
@@ -103,7 +106,7 @@ const STEPS = [
     icon: '📊',
     sub: 'Custom metrics, conversion tracking, business KPIs',
     options: [
-      { label: 'Yes — custom analytics', value: 'yes', price: 250 },
+      { label: 'Yes — custom analytics', value: 'yes', price: 99 },
       { label: 'Basic analytics is fine', value: 'no', price: 0 },
     ],
   },
@@ -121,7 +124,8 @@ export default function CalculatorPage() {
   const [answers, setAnswers] = useState<Answer[]>([])
   const [total, setTotal] = useState(0)
   const [done, setDone] = useState(false)
-  const { addItem, items } = useCart()
+  const { addItem } = useCart()
+  const { formatPrice, isInternational, transferFee } = useGeo()
 
   const progress = ((currentStep) / STEPS.length) * 100
 
@@ -153,18 +157,23 @@ export default function CalculatorPage() {
     answers.forEach(a => {
       if (a.value === 'upgrade') selectedServices.push({ id: 'website-upgrade', name: 'Website Upgrade', price: 599, timeline: '7 days', benefits: ['Performance fix', 'SEO overhaul', 'Modern design'] })
       if (a.value === 'new') selectedServices.push({ id: 'business-website', name: 'Business Website', price: 899, timeline: '10 days', benefits: ['Custom design', 'Mobile-first', 'SEO-ready'] })
-      if (a.stepId === 'adminPanel' && a.value === 'yes') selectedServices.push({ id: 'admin-panel', name: 'Admin Panel', price: 300, timeline: '5 days', benefits: ['Content management', 'User management', 'Analytics'] })
-      if (a.stepId === 'aiAssistant' && a.value === 'yes') selectedServices.push({ id: 'ai-automation', name: 'AI Customer Assistant', price: 500, timeline: '7 days', benefits: ['24/7 support', 'Lead qualification', 'WhatsApp integration'] })
-      if (a.stepId === 'crm' && a.value === 'yes') selectedServices.push({ id: 'crm', name: 'CRM System', price: 400, timeline: '10 days', benefits: ['Lead pipeline', 'Auto follow-up', 'Team collaboration'] })
-      if (a.stepId === 'booking' && a.value === 'yes') selectedServices.push({ id: 'booking', name: 'Booking System', price: 350, timeline: '7 days', benefits: ['Online scheduling', 'Calendar sync', 'Reminders'] })
-      if (a.stepId === 'pos' && a.value === 'yes') selectedServices.push({ id: 'pos', name: 'POS System', price: 600, timeline: '14 days', benefits: ['Inventory mgmt', 'Sales reports', 'Receipt delivery'] })
-      if (a.stepId === 'mobileApp' && a.value === 'yes') selectedServices.push({ id: 'mobile-app', name: 'Mobile App', price: 800, timeline: '21 days', benefits: ['iOS & Android', 'Push notifications', 'App Store ready'] })
-      if (a.stepId === 'seo' && a.value === 'yes') selectedServices.push({ id: 'seo-monthly', name: 'Monthly SEO Package', price: 200, timeline: 'Monthly', benefits: ['Keyword tracking', 'Content strategy', 'Ranking growth'] })
-      if (a.stepId === 'analytics' && a.value === 'yes') selectedServices.push({ id: 'analytics-dashboard', name: 'Analytics Dashboard', price: 250, timeline: '5 days', benefits: ['Custom metrics', 'Conversion tracking', 'KPI reports'] })
+      if (a.stepId === 'adminPanel' && a.value === 'yes') selectedServices.push({ id: 'admin-panel', name: 'Admin Panel', price: 149, timeline: '5 days', benefits: ['Content management', 'User management', 'Analytics'] })
+      if (a.stepId === 'aiAssistant' && a.value === 'yes') selectedServices.push({ id: 'ai-automation', name: 'AI Customer Assistant', price: 199, timeline: '7 days', benefits: ['24/7 support', 'Lead qualification', 'WhatsApp integration'] })
+      if (a.stepId === 'crm' && a.value === 'yes') selectedServices.push({ id: 'crm', name: 'CRM System', price: 249, timeline: '10 days', benefits: ['Lead pipeline', 'Auto follow-up', 'Team collaboration'] })
+      if (a.stepId === 'booking' && a.value === 'yes') selectedServices.push({ id: 'booking', name: 'Booking System', price: 149, timeline: '7 days', benefits: ['Online scheduling', 'Calendar sync', 'Reminders'] })
+      if (a.stepId === 'pos' && a.value === 'yes') selectedServices.push({ id: 'pos', name: 'POS System', price: 349, timeline: '14 days', benefits: ['Inventory mgmt', 'Sales reports', 'Receipt delivery'] })
+      if (a.stepId === 'mobileApp' && a.value === 'yes') selectedServices.push({ id: 'mobile-app', name: 'Mobile App', price: 799, timeline: '21 days', benefits: ['iOS & Android', 'Push notifications', 'App Store ready'] })
+      if (a.stepId === 'seo' && a.value === 'yes') selectedServices.push({ id: 'seo-monthly', name: 'Monthly SEO Package', price: 99, timeline: 'Monthly', benefits: ['Keyword tracking', 'Content strategy', 'Ranking growth'] })
+      if (a.stepId === 'analytics' && a.value === 'yes') selectedServices.push({ id: 'analytics-dashboard', name: 'Analytics Dashboard', price: 99, timeline: '5 days', benefits: ['Custom metrics', 'Conversion tracking', 'KPI reports'] })
     })
 
     selectedServices.forEach(s => addItem({ ...s, category: 'calculator' }))
   }
+
+  const selectedCount = answers.filter(a => a.price > 0).length
+  const bundleDiscountPct = getBundleDiscountPercentage(selectedCount)
+  const bundleDiscountAmount = Math.round((total * bundleDiscountPct) / 100 * 100) / 100
+  const finalEstimateUSD = total - bundleDiscountAmount + (isInternational ? transferFee : 0)
 
   const step = STEPS[currentStep]
   const selectedValue = answers.find(a => a.stepId === step?.id)?.value
@@ -179,9 +188,12 @@ export default function CalculatorPage() {
         <div className="text-sm font-medium text-white/60">
           Step {done ? STEPS.length : currentStep + 1} of {STEPS.length}
         </div>
-        <Link href="/cart" className="text-sm text-violet-400 hover:text-violet-300 transition-colors">
-          View Cart →
-        </Link>
+        <div className="flex items-center gap-3">
+          <CurrencyToggle />
+          <Link href="/cart" className="text-sm text-violet-400 hover:text-violet-300 transition-colors">
+            View Cart →
+          </Link>
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -194,11 +206,21 @@ export default function CalculatorPage() {
         <div className="mb-8 text-center">
           <div className="text-xs text-white/30 mb-1 font-mono">ESTIMATED INVESTMENT</div>
           <div className="text-5xl font-bold tabular-nums" style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            ${total.toLocaleString()}
+            {formatPrice(total - bundleDiscountAmount)}
           </div>
           {total > 0 && (
-            <div className="text-xs text-white/30 mt-1">
-              {answers.filter(a => a.price > 0).length} service{answers.filter(a => a.price > 0).length !== 1 ? 's' : ''} selected
+            <div className="text-xs text-white/30 mt-1 space-y-0.5">
+              <div>
+                {selectedCount} service{selectedCount !== 1 ? 's' : ''} selected
+                {bundleDiscountPct > 0 && (
+                  <span className="ml-1.5 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-semibold text-[10px]">
+                    {bundleDiscountPct}% Bundle Discount!
+                  </span>
+                )}
+              </div>
+              {isInternational && transferFee > 0 && (
+                <div className="text-white/20">+ est. {formatPrice(transferFee)} transfer fee</div>
+              )}
             </div>
           )}
         </div>
@@ -224,7 +246,7 @@ export default function CalculatorPage() {
                     <span className="font-medium">{option.label}</span>
                     {option.price > 0 && (
                       <span className={`text-sm font-semibold shrink-0 ml-3 ${selectedValue === option.value ? 'text-violet-300' : 'text-white/30'}`}>
-                        +${option.price}
+                        +{formatPrice(option.price)}
                       </span>
                     )}
                   </button>
@@ -246,25 +268,62 @@ export default function CalculatorPage() {
           </div>
         ) : (
           /* Results */
-          <div className="w-full max-w-xl">
-            <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-b from-violet-900/20 to-indigo-900/10 p-8 mb-4">
+          <div className="w-full max-w-xl space-y-4">
+            <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-b from-violet-900/20 to-indigo-900/10 p-8">
+              <InternationalOfferBanner />
               <div className="text-center mb-6">
                 <div className="text-4xl mb-2">🎯</div>
                 <h2 className="text-2xl font-bold text-white mb-1">Your Project Estimate</h2>
                 <p className="text-white/40 text-sm">Based on your answers, here's your personalized plan</p>
               </div>
+
               <div className="space-y-2 mb-6">
                 {answers.filter(a => a.price > 0).map(a => (
                   <div key={a.stepId} className="flex items-center justify-between py-2 border-b border-white/5">
                     <span className="text-sm text-white/70">{a.label}</span>
-                    <span className="text-sm font-semibold text-violet-300">${a.price}</span>
+                    <span className="text-sm font-semibold text-violet-300">{formatPrice(a.price)}</span>
                   </div>
                 ))}
-                <div className="flex items-center justify-between py-3">
-                  <span className="font-bold text-white">Total Estimate</span>
-                  <span className="text-2xl font-bold" style={{ color: '#a855f7' }}>${total.toLocaleString()}</span>
+
+                {/* Subtotal */}
+                <div className="flex items-center justify-between py-2 text-sm text-white/50 pt-3 border-t border-white/10">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+
+                {/* Bundle Discount */}
+                {bundleDiscountPct > 0 && (
+                  <div className="flex items-center justify-between py-2 text-sm text-green-400 font-medium">
+                    <span>Bundle Discount ({bundleDiscountPct}%)</span>
+                    <span>-{formatPrice(bundleDiscountAmount)}</span>
+                  </div>
+                )}
+
+                {isInternational && transferFee > 0 && (
+                  <div className="flex items-center justify-between py-2 text-sm text-white/40">
+                    <span>Est. Bank Transfer Fee</span>
+                    <span>{formatPrice(transferFee)}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between py-3 border-t border-white/10 mt-2">
+                  <span className="font-bold text-white text-base">Final Investment</span>
+                  <span className="text-2xl font-bold text-violet-300">{formatPrice(finalEstimateUSD)}</span>
                 </div>
               </div>
+
+              {/* 🎉 Bundle Savings Box */}
+              {bundleDiscountAmount > 0 && (
+                <div className="mb-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-green-300 space-y-1">
+                  <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🎉</span> Bundle Savings
+                  </div>
+                  <div className="text-sm">
+                    You saved <span className="font-bold text-white">{formatPrice(bundleDiscountAmount)}</span> because you selected multiple services!
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
                   onClick={handleAddToCart}
@@ -272,11 +331,12 @@ export default function CalculatorPage() {
                 >
                   Add All to Cart →
                 </button>
-                <Link href="/audit" className="flex-1 py-3 rounded-xl border border-white/10 bg-white/5 text-white font-semibold hover:bg-white/10 transition-all text-center">
-                  Start Free Audit
+                <Link href="/quote" className="flex-1 py-3 rounded-xl border border-violet-500/30 bg-violet-500/10 text-violet-300 font-semibold hover:bg-violet-500/20 transition-all text-center">
+                  Custom Requirements →
                 </Link>
               </div>
             </div>
+
             <div className="flex justify-between">
               <button
                 onClick={() => { setCurrentStep(0); setAnswers([]); setTotal(0); setDone(false) }}
@@ -285,7 +345,7 @@ export default function CalculatorPage() {
                 ← Restart Calculator
               </button>
               <Link href="/cart" className="text-sm text-violet-400 hover:text-violet-300 transition-colors">
-                View Cart ({items.length} items) →
+                View Cart →
               </Link>
             </div>
           </div>
