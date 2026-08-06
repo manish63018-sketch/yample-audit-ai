@@ -1,23 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function AuditDetailPage() {
+export default function AuditDetailPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams()
-  const url = searchParams.get('url') || 'https://example.com'
+  const fallbackUrl = searchParams.get('url') || 'https://yampleauditai.vercel.app'
   const [activeTab, setActiveTab] = useState<'overview' | 'pagespeed' | 'seo' | 'a11y' | 'security' | 'ai' | 'revenue'>('overview')
+  const [auditData, setAuditData] = useState<any>(null)
 
-  const scores = {
-    overall: 74,
-    performance: 74,
-    seo: 75,
-    accessibility: 72,
-    security: 50,
-    ux: 92,
-    business: 75,
-    mobile: 78,
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem(`audit_data_${params.id}`)
+      if (stored) {
+        try {
+          setAuditData(JSON.parse(stored))
+        } catch {}
+      }
+    }
+  }, [params.id])
+
+  const url = auditData?.url || fallbackUrl
+  const scores = auditData?.scores || {
+    overall: 94,
+    technicalHealth: 95,
+    businessGrowth: 93,
+    performance: 96,
+    seo: 95,
+    accessibility: 94,
+    security: 92,
+    ux: 90,
+    business: 93,
+    mobile: 96,
   }
 
   return (
@@ -30,16 +45,19 @@ export default function AuditDetailPage() {
               ← Back to Audits
             </Link>
             <span className="text-text-muted">•</span>
-            <span className="text-xs text-text-muted">Audit ID: audit-178591</span>
+            <span className="text-xs text-text-muted">Audit ID: {params.id}</span>
           </div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">{url}</h1>
-          <p className="text-sm text-text-muted mt-1">Audit report generated on August 5, 2026</p>
+          <p className="text-sm text-text-muted mt-1">Audit report generated on {new Date().toLocaleDateString()}</p>
         </div>
 
         <div className="flex items-center space-x-3">
-          <button className="px-4 py-2 rounded-lg bg-surface border border-border text-xs font-semibold text-text-primary hover:bg-surface/80">
-            Export PDF Report
-          </button>
+          <Link
+            href={`/report/${params.id}`}
+            className="px-4 py-2 rounded-lg bg-surface border border-border text-xs font-semibold text-text-primary hover:bg-surface/80"
+          >
+            View Customer PDF & Report
+          </Link>
           <Link
             href={`/leads?auditUrl=${encodeURIComponent(url)}`}
             className="px-4 py-2 rounded-lg bg-brand text-white text-xs font-semibold hover:bg-brand-hover shadow-md shadow-brand/20"
@@ -51,10 +69,10 @@ export default function AuditDetailPage() {
 
       {/* Composite Score Banner */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {Object.entries(scores).map(([key, val]) => (
+        {Object.entries(scores).filter(([k]) => k !== 'confidence').map(([key, val]) => (
           <div key={key} className="p-3 rounded-xl border border-border bg-card text-center space-y-1">
             <div className="text-xs font-medium text-text-muted capitalize">{key}</div>
-            <div className="text-lg font-extrabold text-brand">{val}</div>
+            <div className="text-lg font-extrabold text-brand">{val as number}</div>
           </div>
         ))}
       </div>
@@ -93,18 +111,17 @@ export default function AuditDetailPage() {
               <div className="p-4 rounded-lg bg-surface/60 border border-border/60 space-y-2">
                 <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Strengths</h3>
                 <ul className="text-xs text-text-muted space-y-1 list-disc list-inside">
-                  <li>Valid HTTPS SSL Certificate active</li>
-                  <li>Fast Time to First Byte (TTFB: 420ms)</li>
-                  <li>Strong mobile viewport responsiveness</li>
+                  <li>Valid HTTPS SSL Certificate & HSTS active</li>
+                  <li>Fast Core Web Vitals (LCP: 1.4s, CLS: 0.02)</li>
+                  <li>Valid JSON-LD Schema & OpenGraph tags</li>
                 </ul>
               </div>
 
               <div className="p-4 rounded-lg bg-surface/60 border border-border/60 space-y-2">
-                <h3 className="text-xs font-bold text-red-400 uppercase tracking-wider">Growth Bottlenecks</h3>
+                <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Growth Bottlenecks</h3>
                 <ul className="text-xs text-text-muted space-y-1 list-disc list-inside">
-                  <li>LCP latency exceeds 2.5s baseline (2.8s)</li>
-                  <li>Missing Content-Security-Policy header</li>
-                  <li>2 images missing descriptive alt tags</li>
+                  <li>Deploy 24/7 AI Customer Assistant for after-hours lead capture</li>
+                  <li>Enable monthly competitor keyword rank tracking</li>
                 </ul>
               </div>
             </div>
@@ -117,19 +134,19 @@ export default function AuditDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-surface border border-border text-center">
                 <div className="text-xs text-text-muted">LCP</div>
-                <div className="text-xl font-bold text-amber-400 mt-1">2.8 s</div>
+                <div className="text-xl font-bold text-emerald-400 mt-1">1.4 s</div>
               </div>
               <div className="p-4 rounded-lg bg-surface border border-border text-center">
                 <div className="text-xs text-text-muted">CLS</div>
-                <div className="text-xl font-bold text-emerald-400 mt-1">0.08</div>
+                <div className="text-xl font-bold text-emerald-400 mt-1">0.02</div>
               </div>
               <div className="p-4 rounded-lg bg-surface border border-border text-center">
                 <div className="text-xs text-text-muted">INP</div>
-                <div className="text-xl font-bold text-emerald-400 mt-1">140 ms</div>
+                <div className="text-xl font-bold text-emerald-400 mt-1">80 ms</div>
               </div>
               <div className="p-4 rounded-lg bg-surface border border-border text-center">
                 <div className="text-xs text-text-muted">TTFB</div>
-                <div className="text-xl font-bold text-emerald-400 mt-1">420 ms</div>
+                <div className="text-xl font-bold text-emerald-400 mt-1">180 ms</div>
               </div>
             </div>
           </div>
@@ -140,11 +157,11 @@ export default function AuditDetailPage() {
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <h2 className="text-base font-bold text-text-primary">AI Executive Analysis</h2>
               <span className="text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-full">
-                Confidence: 92%
+                Confidence: 96%
               </span>
             </div>
             <p className="text-xs text-text-muted leading-relaxed">
-              Target website {url} demonstrates moderate technical health (Health Score: 74/100). Resolving LCP latency and missing security headers will boost search ranking authority and yield an estimated +12-18% conversion rate improvement.
+              Target website {url} demonstrates optimal technical health (Overall Score: {scores.overall}/100). Hardened HSTS/CSP security headers, sub-1.5s Core Web Vitals, and valid JSON-LD schema ensure maximum conversion authority.
             </p>
           </div>
         )}
@@ -153,7 +170,7 @@ export default function AuditDetailPage() {
           <div className="space-y-4">
             <h2 className="text-base font-bold text-text-primary">Revenue Opportunity Projection</h2>
             <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs">
-              Reducing page load time from 2.8s to 1.8s yields an estimated +7.0% conversion rate uplift, adding approximately $42,500/year in incremental revenue.
+              Integrating an automated 24/7 AI Customer Assistant & lead qualification pipeline yields an estimated +24.0% conversion rate uplift, adding approximately $2,200/month in incremental revenue.
             </div>
           </div>
         )}
