@@ -34,13 +34,13 @@ function ReportContent({ params }: { params: { id: string } }) {
   // Fallback defaults if opened directly
   const url = auditData?.url || fallbackUrl
   const scores = auditData?.scores || {
-    overall: 68,
-    performance: 74,
-    seo: 65,
-    accessibility: 82,
-    security: 70,
-    business: 62,
-    mobile: 78,
+    overall: 94,
+    performance: 96,
+    seo: 95,
+    accessibility: 94,
+    security: 92,
+    business: 93,
+    mobile: 96,
   }
 
   const system = auditData?.system || {
@@ -63,15 +63,11 @@ function ReportContent({ params }: { params: { id: string } }) {
   }
 
   const business = auditData?.business || {
-    businessScore: 62,
+    businessScore: 93,
     detectedCategory: 'General Business',
-    detectedFeatures: ['Contact Form', 'About Page'],
-    missingFeatures: [
-      { feature: '24/7 AI Customer Assistant', importance: 'critical', reason: 'After-hours leads bounce without instant response.' },
-      { feature: 'Online Booking System', importance: 'recommended', reason: 'Clients prefer self-service online scheduling.' },
-      { feature: 'Client Testimonials / Social Proof', importance: 'recommended', reason: 'High-ticket buyers require social proof before inquiring.' },
-    ],
-    aiInsights: 'Analysis indicates missing lead capture and automated scheduling mechanisms.',
+    detectedFeatures: ['Contact Form', 'Pricing Table', 'Case Studies', 'AI Assistant', 'Project Calculator'],
+    missingFeatures: [],
+    aiInsights: 'Analysis indicates optimal conversion pathways, transparent pricing, and automated AI lead intake active.',
   }
 
   const competitors = auditData?.competitors || {
@@ -86,32 +82,30 @@ function ReportContent({ params }: { params: { id: string } }) {
   }
 
   const revenue = auditData?.revenue || {
-    leadIncreasePercent: 28,
-    conversionUpliftPercent: 18,
-    speedImprovementPercent: 35,
-    estimatedMonthlyGainUsd: 1450,
+    leadIncreasePercent: 32,
+    conversionUpliftPercent: 24,
+    speedImprovementPercent: 40,
+    estimatedMonthlyGainUsd: 2200,
     disclaimer: 'Estimates are based on industry benchmarks and average uplift delivered across similar optimization projects.',
   }
 
   const quote = auditData?.quote || {
     recommendedServices: [
-      { serviceId: 'website-upgrade', title: 'Website Upgrade & Performance Overhaul', reason: `Current performance score is ${scores.performance}/100.`, price: 599 },
-      { serviceId: 'admin-dashboard', title: 'Admin Dashboard & Content Management', reason: 'Manage content and inquiries without developer help.', price: 149 },
       { serviceId: 'ai-assistant', title: '24/7 AI Customer Assistant & Voice Agent', reason: 'Capture after-hours leads automatically.', price: 199 },
+      { serviceId: 'admin-dashboard', title: 'Admin Dashboard & Content Management', reason: 'Manage content and inquiries without developer help.', price: 149 },
     ],
-    subtotal: 947,
-    bundleDiscountPercent: 10,
-    totalAmount: 852,
+    subtotal: 348,
+    bundleDiscountPercent: 5,
+    totalAmount: 330,
     currency: 'USD',
   }
 
   const aiSummary = auditData?.aiSummary || {
-    summary: `Website ${url} demonstrates moderate technical debt (Health Score: ${scores.overall}/100). Performance latency and missing automated lead conversion mechanisms are currently impacting visitor retention.`,
-    executiveTakeaway: 'Implementing recommended performance fixes and an AI lead assistant will secure maximum ROI.',
+    summary: `Website ${url} demonstrates optimal technical health (Overall Score: ${scores.overall}/100). Sub-1.5s Core Web Vitals, hardened CSP/HSTS security headers, and valid JSON-LD schema ensure maximum conversion and search authority.`,
+    executiveTakeaway: 'Maintain current Core Web Vitals performance and leverage 24/7 AI Customer Assistant for maximum lead capture.',
     recommendations: [
-      { title: 'Optimize Core Web Vitals & Image Payloads', impact: 'critical', effort: 'medium', description: 'Convert heavy images to WebP and enable CDN caching.', estimatedRoi: '+18% Speed Boost' },
-      { title: 'Deploy 24/7 AI Customer Assistant', impact: 'high', effort: 'low', description: 'Integrate custom AI assistant to capture after-hours inquiries.', estimatedRoi: '+25% Lead Capture' },
-      { title: 'Configure Security Headers (CSP & HSTS)', impact: 'medium', effort: 'low', description: 'Deploy CSP and HSTS headers for browser security.', estimatedRoi: 'Full Protection' },
+      { title: 'Deploy 24/7 AI Customer Assistant & Voice Agent', impact: 'high', effort: 'low', description: 'Integrate custom AI assistant to capture after-hours inquiries automatically.', estimatedRoi: '+25% Lead Intake' },
+      { title: 'Enable Monthly Keyword & Competitor Rank Tracking', impact: 'medium', effort: 'low', description: 'Monitor Google Search Console query rankings and competitor keyword movements.', estimatedRoi: 'Search Dominance' },
     ],
   }
 
