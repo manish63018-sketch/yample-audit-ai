@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useGeo } from '@/context/GeoContext'
 
 const SCAN_MESSAGES = [
@@ -39,12 +39,15 @@ const BUSINESS_CATEGORIES = [
 
 const GOALS = ['More Leads', 'Increase Sales', 'Brand Authority', 'Portfolio Showcase']
 
-export default function AuditPage() {
+function AuditFormContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialUrlParam = searchParams.get('url') || ''
+
   const { geo } = useGeo()
   const isIndia = geo.isIndia
 
-  const [url, setUrl] = useState('')
+  const [url, setUrl] = useState(initialUrlParam)
   const [businessCategory, setBusinessCategory] = useState('General Business')
   const [country, setCountry] = useState(isIndia ? 'IN' : 'US')
   const [businessGoal, setBusinessGoal] = useState('More Leads')
@@ -58,6 +61,12 @@ export default function AuditPage() {
   useEffect(() => {
     setCountry(isIndia ? 'IN' : 'US')
   }, [isIndia])
+
+  useEffect(() => {
+    if (initialUrlParam && !url) {
+      setUrl(initialUrlParam)
+    }
+  }, [initialUrlParam, url])
 
   const isValidUrl = (u: string) => {
     try {
@@ -81,18 +90,6 @@ export default function AuditPage() {
     setActiveCat(0)
 
     try {
-      // Trigger real API execution
-      const resPromise = fetch('/api/audits/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: cleanUrl,
-          businessCategory,
-          country,
-          businessGoal,
-        }),
-      })
-
       // Animate progress smoothly while waiting for API
       const progInterval = setInterval(() => {
         setProgress((p) => {
@@ -109,8 +106,19 @@ export default function AuditPage() {
         setActiveCat((c) => (c + 1) % CATEGORIES.length)
       }, 1000)
 
-      const response = await resPromise
-      const data = await response.json()
+      // Trigger real API execution
+      const res = await fetch('/api/audits/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: cleanUrl,
+          businessCategory,
+          country,
+          businessGoal,
+        }),
+      })
+
+      const data = await res.json()
 
       clearInterval(progInterval)
       clearInterval(msgInterval)
@@ -133,12 +141,12 @@ export default function AuditPage() {
           }, 800)
         }, 500)
       } else {
-        setError(data.error?.message || 'Audit failed. Please try again.')
+        setError(data.error?.message || 'Audit failed to complete. Please try again.')
         setPhase('input')
       }
     } catch (err) {
       console.error('Audit execution error:', err)
-      setError('Failed to complete website audit. Please check the URL and try again.')
+      setError('Failed to complete website audit. Please check your URL and network connection.')
       setPhase('input')
     }
   }
@@ -338,5 +346,13 @@ export default function AuditPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AuditPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#08080f] text-white p-8">Loading audit engine...</div>}>
+      <AuditFormContent />
+    </Suspense>
   )
 }
