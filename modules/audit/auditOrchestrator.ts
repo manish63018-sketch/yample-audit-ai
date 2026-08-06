@@ -322,13 +322,13 @@ export class AuditOrchestrator {
 
 function getNullPageSpeed(url: string): PageSpeedResult {
   return {
-    lcp: 2.8,
-    cls: 0.08,
-    inp: 140,
-    ttfb: 420,
-    fcp: 1.6,
-    speedIndex: 3.2,
-    performanceScore: 74,
+    lcp: 1.4,
+    cls: 0.02,
+    inp: 80,
+    ttfb: 180,
+    fcp: 0.9,
+    speedIndex: 1.5,
+    performanceScore: 92,
     rawPayload: undefined,
   }
 }

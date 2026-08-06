@@ -14,11 +14,11 @@ import { GeoProvider } from '@/context/GeoContext'
 export const metadata: Metadata = {
   metadataBase: new URL('https://yampleauditai.vercel.app'),
   title: {
-    default: 'AuditAI by Yample Labs — Turn Your Website Into A Revenue Machine',
+    default: 'AuditAI — AI Website Audit & Business Platform',
     template: '%s | AuditAI by Yample Labs',
   },
   description:
-    'AI-Powered Website Audit, Business Intelligence, Growth Roadmap and Development Platform. Analyze Performance, SEO, Security, Accessibility & Business Growth.',
+    'AuditAI by Yample Labs analyzes performance, SEO, security, accessibility, and business growth to turn your website into a revenue machine.',
   keywords: [
     'website audit',
     'AI website analysis',

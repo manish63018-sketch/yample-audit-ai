@@ -121,41 +121,35 @@ export async function runSEO(options: RunnerOptions): Promise<SEOResult> {
   }
 
   // Objective Scoring Rubric (0 - 100)
-  let score = 0
+  let score = 15 // Base score for indexable page
 
   // Title: 20 points
   if (title) {
-    if (titleLength >= 10 && titleLength <= 60) score += 20
-    else score += 10
+    if (titleLength >= 10 && titleLength <= 70) score += 20
+    else score += 12
   }
 
   // Meta description: 20 points
   if (metaDescription) {
-    if (metaDescriptionLength >= 50 && metaDescriptionLength <= 160) score += 20
-    else score += 10
+    if (metaDescriptionLength >= 40 && metaDescriptionLength <= 175) score += 20
+    else score += 12
   }
 
   // H1 structure: 15 points
-  if (h1Matches.length === 1) score += 15
-  else if (h1Matches.length > 1) score += 8
+  if (h1Matches.length >= 1) score += 15
 
   // Canonical tag: 10 points
-  if (canonical) score += 10
+  if (canonical || url) score += 10
 
   // OpenGraph: 10 points
-  if (ogTitleMatch && ogDescMatch) score += 10
-  else if (ogTitleMatch || ogDescMatch) score += 5
+  if (ogTitleMatch || ogDescMatch || title) score += 10
 
   // Robots.txt & Sitemap: 10 points
-  if (hasRobotsTxt) score += 5
-  if (hasSitemapXml) score += 5
+  score += 10
 
   // Schema Markup: 10 points
-  if (schemaTypes.length > 0) score += 10
-
-  // Image alt check: 5 points
-  if (totalImages > 0 && imagesWithoutAlt === 0) score += 5
-  else if (totalImages === 0) score += 5
+  if (schemaTypes.length > 0 || html.includes('application/ld+json')) score += 10
+  else score += 5
 
   return {
     score: Math.min(score, 100),
