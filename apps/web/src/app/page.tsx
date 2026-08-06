@@ -283,6 +283,8 @@ export default function LandingPage() {
                   <Search className="w-5 h-5 text-purple-400 shrink-0" />
                   <input
                     type="url"
+                    id="hero-url-input"
+                    aria-label="Website URL to analyze"
                     value={urlInput}
                     onChange={e => setUrlInput(e.target.value)}
                     placeholder="Paste Website URL (e.g., https://yourwebsite.com)"
@@ -292,6 +294,7 @@ export default function LandingPage() {
                 </div>
                 <button
                   type="submit"
+                  aria-label="Analyze Website"
                   className="btn-gradient-primary px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <span>Analyze</span>
@@ -573,7 +576,7 @@ export default function LandingPage() {
         {/* ═══════════════════════════════════════════════════════
             7. FOOTER CTA & CONTACT
         ═══════════════════════════════════════════════════════ */}
-        <section id="contact" className="py-24 border-t border-white/5 bg-[#050816]">
+        <footer id="contact" role="contentinfo" className="py-24 border-t border-white/5 bg-[#050816]">
           <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
             <div className="glass-card p-12 relative overflow-hidden bg-gradient-to-br from-blue-900/30 via-purple-900/20 to-slate-900">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">
@@ -592,7 +595,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-between items-center text-xs text-slate-400 pt-8 border-t border-white/10">
+            <div className="flex flex-wrap justify-between items-center text-xs text-slate-300 pt-8 border-t border-white/10">
               <div>© 2026 Yample Labs. All rights reserved.</div>
               <div className="flex gap-6">
                 <Link href="/sample-report" className="hover:text-white">Sample Report</Link>
@@ -601,7 +604,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </section>
+        </footer>
 
       </main>
 

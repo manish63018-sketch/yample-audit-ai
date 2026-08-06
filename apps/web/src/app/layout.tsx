@@ -8,33 +8,36 @@ import { GeoProvider } from '@/context/GeoContext'
 
 /**
  * Root layout — wraps every page in the application.
- * Sets up: fonts, metadata, viewport, providers.
+ * Sets up: fonts, metadata, viewport, providers, WCAG ARIA landmarks, JSON-LD Schema markup.
  */
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://audit-ai-vercel.app'),
+  metadataBase: new URL('https://yampleauditai.vercel.app'),
   title: {
-    default: 'AuditAI — AI-Powered Website Intelligence Platform',
+    default: 'AuditAI by Yample Labs — Turn Your Website Into A Revenue Machine',
     template: '%s | AuditAI by Yample Labs',
   },
   description:
-    'AuditAI transforms complex website audits into clear business decisions. Analyze performance, SEO, accessibility, security, and get AI-powered business intelligence reports — in minutes.',
+    'AI-Powered Website Audit, Business Intelligence, Growth Roadmap and Development Platform. Analyze Performance, SEO, Security, Accessibility & Business Growth.',
   keywords: [
     'website audit',
     'AI website analysis',
     'SEO audit',
     'performance audit',
     'accessibility audit',
+    'security audit',
     'website intelligence',
     'Lighthouse',
     'PageSpeed',
-    'AI reports',
-    'agency tools',
-    'web audit tool',
+    'Yample Labs',
+    'revenue machine',
   ],
   authors: [{ name: 'Yample Labs', url: 'https://yamplelabs.com' }],
   creator: 'Yample Labs',
   publisher: 'Yample Labs',
+  alternates: {
+    canonical: 'https://yampleauditai.vercel.app',
+  },
   robots: {
     index: true,
     follow: true,
@@ -48,17 +51,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://auditai.yamplelabs.com',
-    siteName: 'AuditAI',
-    title: 'AuditAI — AI-Powered Website Intelligence Platform',
+    url: 'https://yampleauditai.vercel.app',
+    siteName: 'AuditAI by Yample Labs',
+    title: 'AuditAI — Turn Your Website Into A Revenue Machine',
     description:
-      'Transform website audits into business intelligence. Performance, SEO, Accessibility, Security — analyzed by AI.',
+      'AI-powered website audit, Core Web Vitals performance, SEO, accessibility, security, and business intelligence platform.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'AuditAI Dashboard Preview',
+        alt: 'AuditAI Platform Preview',
       },
     ],
   },
@@ -66,9 +69,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@yamplabs',
     creator: '@yamplabs',
-    title: 'AuditAI — AI-Powered Website Intelligence Platform',
+    title: 'AuditAI — Turn Your Website Into A Revenue Machine',
     description:
-      'Transform website audits into business intelligence. Performance, SEO, Accessibility, Security — analyzed by AI.',
+      'AI-powered website audit, Core Web Vitals performance, SEO, accessibility, security, and business intelligence platform.',
     images: ['/og-image.png'],
   },
   manifest: '/site.webmanifest',
@@ -80,7 +83,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#09090B',
+  themeColor: '#050816',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -91,22 +94,59 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': 'https://yampleauditai.vercel.app/#organization',
+        name: 'Yample Labs',
+        url: 'https://yamplelabs.com',
+        logo: 'https://yampleauditai.vercel.app/og-image.png',
+        sameAs: ['https://twitter.com/yamplabs'],
+      },
+      {
+        '@type': 'SoftwareApplication',
+        name: 'AuditAI',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'All',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
+    ],
+  }
+
   return (
     <html
       lang="en"
       className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body className="min-h-screen bg-[#050816] text-white antialiased">
         {/* Skip navigation link for keyboard users */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand focus:text-white focus:rounded-md focus:text-sm focus:font-medium"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-md focus:text-sm focus:font-medium"
         >
           Skip to main content
         </a>
 
-        <AuthProvider><GeoProvider><CartProvider>{children}</CartProvider></GeoProvider></AuthProvider>
+        <AuthProvider>
+          <GeoProvider>
+            <CartProvider>
+              <main id="main-content">{children}</main>
+            </CartProvider>
+          </GeoProvider>
+        </AuthProvider>
       </body>
     </html>
   )
