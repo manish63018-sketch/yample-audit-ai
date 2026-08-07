@@ -53,7 +53,7 @@ export default function CookiesPage() {
                 ['auditai_user', 'Functional', 'Cached user profile data in localStorage', 'Until logout'],
                 ['auditai_cart', 'Functional', 'Saved cart items for checkout resume', '24 hours'],
                 ['auditai_active_quote', 'Functional', 'Saved quotation for checkout', '24 hours'],
-                ['auditai_currency', 'Functional', 'User's preferred currency (INR/USD)', '30 days'],
+                ['auditai_currency', 'Functional', "User's preferred currency (INR/USD)", '30 days'],
                 ['auditai_requirements', 'Functional', 'Draft requirement form auto-save', '48 hours'],
                 ['auditai_lang', 'Functional', 'User language preference', '30 days'],
                 ['_vercel_analytics', 'Analytical', 'Anonymous page view analytics via Vercel', '30 days'],

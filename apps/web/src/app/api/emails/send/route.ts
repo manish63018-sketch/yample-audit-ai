@@ -75,9 +75,8 @@ export async function POST(req: NextRequest) {
 
     // Log to Supabase email_logs (best-effort — never blocks email delivery)
     try {
-      const { createServerComponentClient } = await import('@supabase/auth-helpers-nextjs')
-      const { cookies } = await import('next/headers')
-      const supabase = createServerComponentClient({ cookies })
+      const { createAdminSupabaseClient } = await import('@auditai/db')
+      const supabase = createAdminSupabaseClient()
       await supabase.from('email_logs').insert({
         recipient_email: recipientEmail,
         recipient_name: recipientName,
