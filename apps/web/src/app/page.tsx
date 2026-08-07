@@ -239,17 +239,42 @@ export default function LandingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const handleAuditSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    const raw = urlInput.trim()
-    if (!raw) return
-
-    setIsSubmitting(true)
-    setSubmitError('')
+  const extractCleanDomain = (inputUrl: string): string => {
+    let raw = inputUrl.trim()
+    if (!raw) return ''
 
     try {
-      const cleanUrl = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+      const full = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+      const parsed = new URL(full)
 
+      // If a nested report URL was pasted (e.g. /report/demo-...?url=https://target.com)
+      const nested = parsed.searchParams.get('url')
+      if (nested) {
+        return extractCleanDomain(nested)
+      }
+
+      // Return clean origin or hostname
+      return parsed.hostname ? `https://${parsed.hostname}` : full
+    } catch {
+      return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+    }
+  }
+
+  const handleAuditSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setSubmitError('')
+
+    const raw = urlInput.trim()
+    if (!raw) {
+      setSubmitError('Please enter a website URL.')
+      return
+    }
+
+    const cleanUrl = extractCleanDomain(raw)
+
+    setIsSubmitting(true)
+
+    try {
       const res = await fetch('/api/audits/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
