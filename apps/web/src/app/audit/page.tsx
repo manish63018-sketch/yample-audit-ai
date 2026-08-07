@@ -203,7 +203,7 @@ function AuditFormContent() {
                     Starting Audit...
                   </>
                 ) : (
-                  '🚀 Launch Enterprise Audit →'
+                  'Launch Enterprise Audit →'
                 )}
               </button>
             </div>
@@ -212,15 +212,14 @@ function AuditFormContent() {
 
             <div className="flex flex-wrap justify-center gap-3">
               {[
-                { icon: '⚡', label: 'Performance' },
-                { icon: '🔍', label: 'SEO' },
-                { icon: '🛡️', label: 'Security' },
-                { icon: '♿', label: 'Accessibility' },
-                { icon: '📈', label: 'Business' },
+                { label: 'Performance' },
+                { label: 'SEO' },
+                { label: 'Security' },
+                { label: 'Accessibility' },
+                { label: 'Business' },
               ].map((cat) => (
                 <div key={cat.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border border-white/5 bg-white/3">
-                  <span>{cat.icon}</span>
-                  <span className="text-white/50">{cat.label}</span>
+                  <span className="text-white/70 font-semibold">{cat.label}</span>
                 </div>
               ))}
             </div>
