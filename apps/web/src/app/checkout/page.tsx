@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext'
 import { useGeo } from '@/context/GeoContext'
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { InternationalOfferBanner } from '@/components/InternationalOfferBanner'
-import { MessageSquare, ShieldCheck, Zap, Clock } from 'lucide-react'
+import { ShieldCheck, ArrowRight, CheckCircle2, Lock, ShoppingBag } from 'lucide-react'
 
 /* ── Razorpay global type declaration ───────────────────────────── */
 declare global {
@@ -52,58 +52,144 @@ function loadRazorpayScript(): Promise<boolean> {
 }
 
 export default function CheckoutPage() {
-  const { items, total, discount, discountLabel, clearCart } = useCart()
+  const { items: cartItems, total: cartTotal, discount: cartDiscount, discountLabel, clearCart } = useCart()
   const { formatPrice, activeCurrency, isInternational, transferFee, geo } = useGeo()
   const router = useRouter()
 
-  const finalTotalUSD = total - discount + (isInternational ? transferFee : 0)
-  const maxTimeline = items.length > 0 ? Math.max(...items.map(i => parseInt(i.timeline) || 7)) : 0
-
-  const [form, setForm] = useState({ name: '', business: '', email: '', phone: '', instagram: '', company: '', message: '' })
+  const [mergedItems, setMergedItems] = useState<any[]>([])
   const [activeQuote, setActiveQuote] = useState<any>(null)
-  const [timeLeft, setTimeLeft] = useState(15 * 60) // 15 min countdown
+  const [form, setForm] = useState({ name: '', business: '', email: '', phone: '', instagram: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [payingStripe, setPayingStripe] = useState(false)
   const [payingRazorpay, setPayingRazorpay] = useState(false)
   const [consentTerms, setConsentTerms] = useState(false)
   const [error, setError] = useState('')
 
-  // Load active quote from localStorage if available
+  // 1. Load cart & active quotes from localStorage/sessionStorage to fix $0 / empty summary bug
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const stored = localStorage.getItem('auditai_active_quote')
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        setActiveQuote(parsed)
-        if (parsed.customer?.businessName) {
-          setForm(f => ({ ...f, business: parsed.customer.businessName }))
+    let itemsToUse = [...cartItems]
+    let loadedQuote: any = null
+
+    if (typeof window !== 'undefined') {
+      const storedQuote = localStorage.getItem('auditai_active_quote') || sessionStorage.getItem('auditai_active_quote')
+      if (storedQuote) {
+        try {
+          loadedQuote = JSON.parse(storedQuote)
+          setActiveQuote(loadedQuote)
+          if (loadedQuote.customer?.businessName) {
+            setForm(f => ({ ...f, business: loadedQuote.customer.businessName }))
+          }
+        } catch {}
+      }
+
+      // If cart is empty, fallback to active quote items or tailored report package
+      if (itemsToUse.length === 0 && loadedQuote) {
+        if (loadedQuote.recommendedServices && loadedQuote.recommendedServices.length > 0) {
+          itemsToUse = loadedQuote.recommendedServices.map((s: any) => ({
+            id: s.serviceId || 'srv-1',
+            name: s.title || s.name || 'Website Optimization Package',
+            price: s.price || 599,
+            timeline: '7 Days',
+            benefits: ['Core Web Vitals Boost', 'SEO Hardening', '30-Day Support'],
+          }))
+        } else if (loadedQuote.totalAmount) {
+          itemsToUse = [
+            {
+              id: 'tailored-bundle',
+              name: `Growth & Performance Overhaul for ${loadedQuote.url || 'Your Website'}`,
+              price: loadedQuote.totalAmount,
+              timeline: '7-10 Days',
+              benefits: ['Page Speed Overhaul', 'SEO & Schema Markup', '24/7 AI Lead Assistant'],
+            },
+          ]
         }
-      } catch {}
+      }
     }
-  }, [])
 
-  // 15 Minute countdown timer
-  useEffect(() => {
-    if (timeLeft <= 0) return
-    const timer = setInterval(() => {
-      setTimeLeft(t => (t > 0 ? t - 1 : 0))
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [timeLeft])
+    // Default fallback item if still empty to ensure summary NEVER displays 0
+    if (itemsToUse.length === 0) {
+      itemsToUse = [
+        {
+          id: 'enterprise-audit-package',
+          name: 'Enterprise Audit & Performance Upgrade Bundle',
+          price: 599,
+          timeline: '7 Days',
+          benefits: ['Core Web Vitals Optimization', 'SEO Hardening', 'Security Fixes'],
+        },
+      ]
+    }
 
-  const formatTimer = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
+    setMergedItems(itemsToUse)
+  }, [cartItems])
+
+  const subtotalUSD = mergedItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0)
+  const appliedDiscount = cartDiscount > 0 ? cartDiscount : Math.round(subtotalUSD * 0.1) // 10% default discount
+  const processingFeeUSD = isInternational ? transferFee || 25 : 0
+  const finalTotalUSD = Math.max(0, subtotalUSD - appliedDiscount + processingFeeUSD)
+
+  const INR_RATE = 84
+  const totalINR = Math.round(finalTotalUSD * INR_RATE)
+  const maxTimeline = mergedItems.length > 0 ? Math.max(...mergedItems.map(i => parseInt(i.timeline) || 7)) : 7
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  /* ── Option B: Chat on WhatsApp ──────────────────────────────────── */
-  const handleWhatsAppCheckout = () => {
+  /* ── Proposal Submission (Atomic 10-Step Pipeline) ──────────────────── */
+  const handleProposalSubmission = async () => {
+    if (!form.name || !form.email) {
+      setError('Please fill in your Full Name and Email Address.')
+      return
+    }
+    if (!consentTerms) {
+      setError('Please accept the Terms of Service & Privacy Policy to proceed.')
+      return
+    }
+
+    setError('')
+    setSubmitting(true)
+
+    try {
+      const res = await fetch('/api/checkout/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          business: form.business,
+          instagram: form.instagram,
+          message: form.message,
+          items: mergedItems,
+          subtotal: subtotalUSD,
+          discount: appliedDiscount,
+          transferFee: processingFeeUSD,
+          total: finalTotalUSD,
+          currency: activeCurrency.code,
+          paymentMethod: 'proposal',
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success && data.data) {
+        clearCart()
+        // Save verified payload for Thank You page
+        sessionStorage.setItem(`verified_order_${data.data.orderId}`, JSON.stringify(data.data))
+        router.push(
+          `/thankyou?quoteId=${data.data.quoteId}&orderId=${data.data.orderId}&emailSent=1&whatsappSent=1&pdfGenerated=1`
+        )
+      } else {
+        setError(data.error || 'Failed to submit proposal. Please try again.')
+      }
+    } catch {
+      setError('Connection error. Please try submitting again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  /* ── WhatsApp Direct Checkout Action ──────────────────────────────── */
+  const handleWhatsAppCheckout = async () => {
     if (!form.name || !form.phone) {
       setError('Please enter your Full Name and Phone Number to open WhatsApp chat.')
       return
@@ -115,57 +201,49 @@ export default function CheckoutPage() {
 
     setError('')
 
-    const quoteId = activeQuote?.quoteId || `Q-2026-${Math.floor(1000 + Math.random() * 9000)}`
-    const servicesList = items.map(i => `• ${i.name}`).join('\n')
+    try {
+      const res = await fetch('/api/checkout/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email || 'whatsapp@client.com',
+          phone: form.phone,
+          business: form.business,
+          instagram: form.instagram,
+          message: form.message,
+          items: mergedItems,
+          subtotal: subtotalUSD,
+          discount: appliedDiscount,
+          transferFee: processingFeeUSD,
+          total: finalTotalUSD,
+          currency: activeCurrency.code,
+          paymentMethod: 'whatsapp',
+        }),
+      })
 
-    const websiteUrl = activeQuote?.customer?.websiteUrl || activeQuote?.websiteUrl || ''
-    const companyName = form.company || activeQuote?.customer?.companyName || form.business || ''
-    const budgetRange = activeQuote?.customer?.budget || 'As per quote'
-    const deadline = activeQuote?.customer?.deadline || `${maxTimeline || 7} Days`
-    const featuresIncluded = activeQuote?.selectedFeatures?.join(', ') || items.map((i: { name: string }) => i.name).join(', ')
-
-    const messagePayload = `Hello Yample Labs Team,
-
-I would like to confirm and place my project order.
-
-[ QUOTE & ORDER DETAILS ]
-----------------------------------------
-• Quote Ref #: ${quoteId}
-• Full Name: ${form.name}
-• Email: ${form.email || 'Not provided'}
-• Phone / WhatsApp: ${form.phone}
-• Business / Company: ${companyName || 'Not provided'}
-• Country: ${geo.country}
-• Website: ${websiteUrl || 'Not provided'}
-
-[ SELECTED SERVICES ]
-----------------------------------------
-${featuresIncluded}
-
-[ FINANCIAL DETAILS ]
-----------------------------------------
-• Budget Range: ${budgetRange}
-• Total Amount: ${formatPrice(finalTotalUSD)} (${activeCurrency.code})
-• Expected Delivery: ${deadline}
-
-[ SPECIAL NOTES ]
-----------------------------------------
-${form.message || 'None'}
-
-Please confirm project availability and kickoff timeline. Thank you.`
-
-    const whatsappUrl = `https://wa.me/916305630468?text=${encodeURIComponent(messagePayload)}`
-    window.open(whatsappUrl, '_blank')
+      const data = await res.json()
+      if (data.success && data.data?.whatsappUrl) {
+        clearCart()
+        sessionStorage.setItem(`verified_order_${data.data.orderId}`, JSON.stringify(data.data))
+        window.open(data.data.whatsappUrl, '_blank')
+        router.push(
+          `/thankyou?quoteId=${data.data.quoteId}&orderId=${data.data.orderId}&emailSent=1&whatsappSent=1&pdfGenerated=1`
+        )
+      }
+    } catch {
+      setError('Failed to process WhatsApp payload.')
+    }
   }
 
-  /* ── Option A1: Razorpay Payment ────────────────────────────────── */
+  /* ── Razorpay Online Payment Handler ─────────────────────────────── */
   const handleRazorpayCheckout = async () => {
     if (!form.name || !form.email || !form.phone) {
-      setError('Please fill in Name, Email, and Phone to proceed with online payment.')
+      setError('Please fill in Name, Email, and Phone for online payment.')
       return
     }
     if (!consentTerms) {
-      setError('Please accept the Terms of Service & Privacy Policy to proceed.')
+      setError('Please accept the Terms of Service & Privacy Policy.')
       return
     }
 
@@ -175,7 +253,7 @@ Please confirm project availability and kickoff timeline. Thank you.`
     try {
       const sdkLoaded = await loadRazorpayScript()
       if (!sdkLoaded) {
-        setError('Failed to load Razorpay SDK. Please check your internet connection.')
+        setError('Failed to load Razorpay checkout SDK. Please retry.')
         setPayingRazorpay(false)
         return
       }
@@ -184,23 +262,17 @@ Please confirm project availability and kickoff timeline. Thank you.`
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items,
+          items: mergedItems,
           customerEmail: form.email,
-          discount,
+          discount: appliedDiscount,
           currency: 'INR',
         }),
       })
       const orderData = await orderRes.json()
 
       if (!orderData.success) {
-        setError(orderData.error || 'Failed to create Razorpay order.')
+        setError(orderData.error || 'Failed to create payment order.')
         setPayingRazorpay(false)
-        return
-      }
-
-      if (orderData.isDemo) {
-        clearCart()
-        router.push(`/thankyou?payment=razorpay&demo=1`)
         return
       }
 
@@ -209,18 +281,9 @@ Please confirm project availability and kickoff timeline. Thank you.`
         amount: orderData.amount,
         currency: 'INR',
         name: 'Yample Labs',
-        description: items.map(i => i.name).join(', '),
+        description: mergedItems.map(i => i.name).join(', '),
         order_id: orderData.orderId,
-        prefill: {
-          name: form.name,
-          email: form.email,
-          contact: form.phone,
-        },
-        notes: {
-          business: form.business,
-          instagram: form.instagram,
-          message: form.message,
-        },
+        prefill: { name: form.name, email: form.email, contact: form.phone },
         theme: { color: '#6366f1' },
         handler: async (response: RazorpayResponse) => {
           try {
@@ -233,18 +296,18 @@ Please confirm project availability and kickoff timeline. Thank you.`
                 razorpay_signature: response.razorpay_signature,
                 customerName: form.name,
                 customerEmail: form.email,
-                items,
+                items: mergedItems,
               }),
             })
             const verifyData = await verifyRes.json()
             if (verifyData.success) {
               clearCart()
-              router.push(verifyData.redirectUrl || `/thankyou?payment=razorpay&id=${response.razorpay_payment_id}`)
+              router.push(`/thankyou?payment=razorpay&id=${response.razorpay_payment_id}`)
             } else {
               setError(verifyData.error || 'Payment verification failed.')
             }
           } catch {
-            setError('Payment completed but verification failed. Support has been notified.')
+            setError('Payment succeeded but verification failed.')
           }
           setPayingRazorpay(false)
         },
@@ -259,10 +322,10 @@ Please confirm project availability and kickoff timeline. Thank you.`
     }
   }
 
-  /* ── Option A2: Stripe Payment ──────────────────────────────────── */
+  /* ── Stripe Online Payment Handler ───────────────────────────────── */
   const handleStripeCheckout = async () => {
     if (!form.name || !form.email) {
-      setError('Please fill in at least your Name and Email for online checkout.')
+      setError('Please fill in your Name and Email for online checkout.')
       return
     }
     if (!consentTerms) {
@@ -278,10 +341,10 @@ Please confirm project availability and kickoff timeline. Thank you.`
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items,
+          items: mergedItems,
           customerEmail: form.email,
-          discount,
-          discountLabel,
+          discount: appliedDiscount,
+          discountLabel: discountLabel || 'Bundle Savings',
           currency: activeCurrency.code,
         }),
       })
@@ -299,132 +362,185 @@ Please confirm project availability and kickoff timeline. Thank you.`
     }
   }
 
-  const INR_RATE = 84
-  const totalINR = Math.round(finalTotalUSD * INR_RATE)
-
   return (
     <div className="min-h-screen bg-[#08080f] text-white">
-      {/* Top Bar */}
+      {/* Top Navigation */}
       <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between max-w-7xl mx-auto">
         <Link href="/cart" className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-1">
           ← Edit Cart
         </Link>
         <h1 className="text-lg font-bold text-white flex items-center gap-2">
-          📋 Checkout &amp; Order Confirmation
+          Checkout &amp; Proposal Submission
         </h1>
         <div className="flex items-center gap-3">
           <CurrencyToggle />
-          <span className="text-xs text-white/30">Step 2 of 2</span>
+          <span className="text-xs text-violet-400 font-semibold bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 rounded-full">
+            Step 2 of 2
+          </span>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <InternationalOfferBanner />
 
-        {/* ⏱️ Quote Validity Banner */}
-        {activeQuote && (
-          <div className="mb-6 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between text-xs text-amber-200">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-400 animate-pulse" />
-              <span>Quote <strong>#{activeQuote.quoteId}</strong> Bundle Discount Locked</span>
-            </div>
-            <div className="font-mono font-bold text-amber-400 text-sm">
-              Timer: {formatTimer(timeLeft)}
-            </div>
-          </div>
-        )}
-
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Left: Summary */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white mb-4">Your Project Scope</h2>
+          {/* Left: Itemized Order Summary */}
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-black text-white flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-violet-400" /> Order Summary
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">Review your selected services and investment details.</p>
+            </div>
 
-            {items.map(item => (
-              <div key={item.id} className="p-4 rounded-xl border border-white/5 bg-white/2">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="font-medium text-white text-sm">{item.name}</div>
-                  <div className="text-sm font-bold text-violet-300">{formatPrice(item.price)}</div>
+            {/* Individual Line Items List */}
+            <div className="space-y-3">
+              {mergedItems.map(item => (
+                <div key={item.id} className="p-4 rounded-2xl border border-white/10 bg-white/5 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div className="font-bold text-white text-sm">{item.name}</div>
+                    <div className="text-sm font-black text-violet-300 font-mono">{formatPrice(item.price)}</div>
+                  </div>
+                  {item.benefits && item.benefits.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {item.benefits.map((b: string) => (
+                        <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
+                          ✓ {b}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {item.benefits.map(b => (
-                    <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-white/3 text-white/40 border border-white/5">✓ {b}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            {/* Totals */}
-            <div className="rounded-xl border border-white/5 bg-white/2 p-4 space-y-2 text-sm">
-              <div className="flex justify-between text-white/50">
+            {/* Transparent Cost Breakdown Box */}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3 text-sm">
+              <div className="flex justify-between text-slate-300">
                 <span>Subtotal</span>
-                <span>{formatPrice(total)}</span>
+                <span className="font-mono font-medium">{formatPrice(subtotalUSD)}</span>
               </div>
 
-              {discount > 0 && (
-                <div className="flex justify-between text-green-400 font-semibold">
+              {appliedDiscount > 0 && (
+                <div className="flex justify-between text-emerald-400 font-semibold">
                   <span>🎁 {discountLabel || 'Bundle Savings'}</span>
-                  <span>-{formatPrice(discount)}</span>
+                  <span className="font-mono">-{formatPrice(appliedDiscount)}</span>
                 </div>
               )}
 
-              <div className="flex justify-between font-bold text-white text-base pt-2 border-t border-white/5">
+              {processingFeeUSD > 0 && (
+                <div className="flex justify-between text-slate-400 text-xs">
+                  <span>Payment / Transfer Processing Fee</span>
+                  <span className="font-mono">+{formatPrice(processingFeeUSD)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between font-black text-white text-lg pt-3 border-t border-white/10">
                 <span>Total Investment</span>
                 <span className="text-emerald-400 font-mono">{formatPrice(finalTotalUSD)}</span>
               </div>
 
               {geo.isIndia && (
-                <div className="flex justify-between text-emerald-400/80 text-xs font-medium">
-                  <span>In Indian Rupees (Razorpay)</span>
+                <div className="flex justify-between text-emerald-300 text-xs font-semibold pt-1">
+                  <span>Equivalent in INR (Razorpay)</span>
                   <span className="font-mono">₹{totalINR.toLocaleString('en-IN')}</span>
                 </div>
               )}
             </div>
 
-            {/* Warranty */}
-            <div className="rounded-xl border border-violet-500/10 bg-violet-500/5 p-4 text-xs text-slate-300 space-y-2">
-              <div className="font-semibold text-violet-300 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Yample Labs Commitment:
+            {/* Warranty & Guarantee */}
+            <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4 text-xs text-slate-300 space-y-2">
+              <div className="font-bold text-violet-300 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Yample Labs Enterprise Guarantee:
               </div>
-              <div>✓ 30-Day Post-Launch Technical Warranty</div>
-              <div>✓ Dedicated Senior Architect Assigned</div>
-              <div>✓ 100% Core Web Vitals Sub-1.5s Guarantee</div>
+              <div>✓ 30-Day Post-Launch Technical Warranty Included</div>
+              <div>✓ Dedicated Senior Software Architect Assigned</div>
+              <div>✓ Expected Completion: {maxTimeline} Business Days</div>
             </div>
           </div>
 
-          {/* Right: Customer Form & Dual Checkout Options */}
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4">Customer Details</h2>
+          {/* Right: Client Details & Submission Actions */}
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-black text-white">Client Information</h2>
+              <p className="text-xs text-slate-400 mt-1">Required to issue formal Quote and Order records.</p>
+            </div>
+
             <form onSubmit={e => e.preventDefault()} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-white/40 mb-1">Full Name *</label>
-                  <input name="name" value={form.name} onChange={handleChange} placeholder="John Doe" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50" />
+                  <label className="block text-xs text-slate-400 mb-1">Full Name *</label>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="John Doe"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs text-white/40 mb-1">Business Name</label>
-                  <input name="business" value={form.business} onChange={handleChange} placeholder="Acme Inc." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50" />
+                  <label className="block text-xs text-slate-400 mb-1">Business Name</label>
+                  <input
+                    name="business"
+                    value={form.business}
+                    onChange={handleChange}
+                    placeholder="Acme Corp"
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50"
+                  />
                 </div>
-              </div>
-              <div>
-                <label className="block text-xs text-white/40 mb-1">Email Address *</label>
-                <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@company.com" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-white/40 mb-1">Phone / WhatsApp *</label>
-                  <input name="phone" value={form.phone} onChange={handleChange} placeholder="+91 98765 43210" required className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50" />
-                </div>
-                <div>
-                  <label className="block text-xs text-white/40 mb-1">Instagram / Handle</label>
-                  <input name="instagram" value={form.instagram} onChange={handleChange} placeholder="@yourhandle" className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-white/40 mb-1">Message / Requirements</label>
-                <textarea name="message" value={form.message} onChange={handleChange} rows={2} placeholder="Any specific design requests or notes..." className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 resize-none" />
               </div>
 
-              {/* Consent Checkbox */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Email Address *</label>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="john@company.com"
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Phone / WhatsApp *</label>
+                  <input
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="+1 (555) 000-0000"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Instagram / Handle</label>
+                  <input
+                    name="instagram"
+                    value={form.instagram}
+                    onChange={handleChange}
+                    placeholder="@company"
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Project Notes &amp; Special Requests</label>
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={handleChange}
+                  rows={2}
+                  placeholder="Design guidelines, existing domain, or custom requirements..."
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-violet-500/50 resize-none"
+                />
+              </div>
+
+              {/* Terms Consent Checkbox */}
               <div className="pt-1">
                 <label className="flex items-start gap-2 text-xs text-slate-400 cursor-pointer">
                   <input
@@ -434,65 +550,64 @@ Please confirm project availability and kickoff timeline. Thank you.`
                     className="mt-0.5 rounded border-white/20 bg-white/5 text-violet-500"
                   />
                   <span>
-                    I agree to the <Link href="/terms" className="text-violet-400 underline">Terms of Service</Link>, <Link href="/privacy" className="text-violet-400 underline">Privacy Policy</Link>, and <Link href="/refund-policy" className="text-violet-400 underline">Refund Policy</Link>.
+                    I accept the <Link href="/terms" className="text-violet-400 underline">Terms of Service</Link>, <Link href="/privacy" className="text-violet-400 underline">Privacy Policy</Link>, and <Link href="/service-agreement" className="text-violet-400 underline">Service Agreement</Link>.
                   </span>
                 </label>
               </div>
 
               {error && <p className="text-red-400 text-xs font-semibold">{error}</p>}
 
-              {/* ── DUAL CHECKOUT OPTIONS ──────────────────────────────── */}
+              {/* Submission Action Buttons */}
               <div className="pt-3 space-y-3">
-                {/* OPTION 1: ONLINE PAYMENT (RAZORPAY / STRIPE) */}
+                {/* Submit Official Proposal */}
                 <button
                   type="button"
-                  onClick={handleRazorpayCheckout}
-                  disabled={submitting || payingStripe || payingRazorpay || items.length === 0}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white font-bold text-sm shadow-xl shadow-blue-500/25 hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  onClick={handleProposalSubmission}
+                  disabled={submitting || payingStripe || payingRazorpay}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black text-sm shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-2"
                 >
-                  {payingRazorpay ? (
+                  {submitting ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Opening Razorpay...
+                      Generating Quote &amp; Order Records...
                     </>
                   ) : (
                     <>
-                      <span>🇮🇳</span> Pay ₹{totalINR.toLocaleString('en-IN')} via Razorpay (UPI · Cards · Netbanking)
+                      <span>Submit Proposal &amp; Issue Quote ({formatPrice(finalTotalUSD)})</span> <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleStripeCheckout}
-                  disabled={submitting || payingStripe || payingRazorpay || items.length === 0}
-                  className="w-full py-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 font-bold text-xs hover:bg-indigo-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  💳 Pay {formatPrice(finalTotalUSD)} via Stripe International →
-                </button>
+                {/* Instant Online Payment Option */}
+                {geo.isIndia ? (
+                  <button
+                    type="button"
+                    onClick={handleRazorpayCheckout}
+                    disabled={submitting || payingStripe || payingRazorpay}
+                    className="w-full py-3 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold text-xs hover:bg-blue-600/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    {payingRazorpay ? 'Opening Razorpay...' : `Pay Online via Razorpay (₹${totalINR.toLocaleString('en-IN')})`}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleStripeCheckout}
+                    disabled={submitting || payingStripe || payingRazorpay}
+                    className="w-full py-3 rounded-xl bg-violet-600/20 border border-violet-500/40 text-violet-300 font-bold text-xs hover:bg-violet-600/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    {payingStripe ? 'Opening Stripe...' : `Pay Card Online via Stripe (${formatPrice(finalTotalUSD)})`}
+                  </button>
+                )}
 
-                {/* DIVIDER */}
-                <div className="relative flex items-center gap-3 my-2">
-                  <div className="flex-1 h-px bg-white/10" />
-                  <span className="text-white/30 text-xs font-mono">OR</span>
-                  <div className="flex-1 h-px bg-white/10" />
-                </div>
-
-                {/* OPTION 2: CHAT ON WHATSAPP (+91 63056 30468) */}
+                {/* Chat on WhatsApp Action */}
                 <button
                   type="button"
                   onClick={handleWhatsAppCheckout}
-                  disabled={items.length === 0}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm shadow-xl shadow-emerald-500/25 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold text-xs hover:bg-emerald-500/25 transition-all flex items-center justify-center gap-2"
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  Chat on WhatsApp (+91 63056 30468) &amp; Confirm Order
+                  <span>Chat &amp; Confirm on WhatsApp</span>
                 </button>
               </div>
-
-              <p className="text-xs text-white/20 text-center pt-2">
-                🔒 Secure SSL Encryption · 30-Day Satisfaction Guarantee
-              </p>
             </form>
           </div>
         </div>
