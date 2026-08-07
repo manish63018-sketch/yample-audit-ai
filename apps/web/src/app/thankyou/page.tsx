@@ -89,12 +89,12 @@ function ThankYouContent() {
         {/* Payment method badge */}
         {isRazorpay && (
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-semibold mb-4">
-            🇮🇳 Paid via Razorpay {isDemo ? '(Demo Mode)' : ''}
+            Paid via Razorpay
           </div>
         )}
         {isStripe && (
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-semibold mb-4">
-            💳 Paid via Stripe {isDemo ? '(Demo Mode)' : ''}
+            Paid via Stripe
           </div>
         )}
 

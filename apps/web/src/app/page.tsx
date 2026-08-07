@@ -378,10 +378,10 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/sample-report"
+                  href="/audit"
                   className="btn-glass-secondary px-6 py-3.5 rounded-xl text-sm font-semibold flex items-center gap-2"
                 >
-                  📊 View Sample Report
+                  View Live Audit Tool
                 </Link>
               </div>
 
@@ -672,7 +672,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-between items-center text-xs text-slate-300 pt-8 border-t border-white/10">
               <div>© 2026 Yample Labs. All rights reserved.</div>
               <div className="flex gap-6">
-                <Link href="/sample-report" className="hover:text-white">Sample Report</Link>
+                <Link href="/audit" className="hover:text-white">Sample Report</Link>
                 <Link href="/case-studies" className="hover:text-white">Case Studies</Link>
                 <a href="mailto:yamplelabs@gmail.com" className="hover:text-white">yamplelabs@gmail.com</a>
               </div>

@@ -170,7 +170,7 @@ export default function CustomerDashboardPage() {
                     </div>
                     <p className="text-xs text-slate-400">Scanned on Aug 7, 2026 · Performance 40 · SEO 69 · Security 100</p>
                   </div>
-                  <Link href="/sample-report" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5">
+                  <Link href="/audit" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5">
                     View Full Report <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -185,7 +185,7 @@ export default function CustomerDashboardPage() {
                     </div>
                     <p className="text-xs text-slate-400">Scanned on Aug 7, 2026 · Performance 96 · SEO 92 · Security 90</p>
                   </div>
-                  <Link href="/sample-report" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5">
+                  <Link href="/audit" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5">
                     View Full Report <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 </div>

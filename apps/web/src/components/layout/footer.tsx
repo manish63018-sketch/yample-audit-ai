@@ -14,7 +14,7 @@ const FOOTER_LINKS = {
     { label: 'About Yample Labs', href: '/about' },
     { label: 'FAQ', href: '/faq' },
     { label: 'Case Studies', href: '/case-studies' },
-    { label: 'Sample Audit Report', href: '/sample-report' },
+    { label: 'Website Audit Tool', href: '/audit' },
     { label: 'Careers (Coming Soon)', href: '#', disabled: true },
   ],
   Platform: [
