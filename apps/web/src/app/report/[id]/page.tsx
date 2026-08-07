@@ -4,21 +4,14 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { PDFGenerator } from '@/components/report/PDFGenerator'
-import { AIWebsiteSimulator } from '@/components/report/AIWebsiteSimulator'
 import { useCart } from '@/context/CartContext'
 import {
-  CheckCircle2,
   XCircle,
   TrendingUp,
   ArrowRight,
   Sparkles,
   Zap,
-  ShieldCheck,
-  Award,
-  Calendar,
   DollarSign,
-  Rocket,
-  Clock,
   Search,
   ShoppingCart,
 } from 'lucide-react'
