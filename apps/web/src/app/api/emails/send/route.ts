@@ -33,37 +33,48 @@ export async function POST(req: NextRequest) {
     const RESEND_API_KEY = process.env.RESEND_API_KEY
 
     if (!RESEND_API_KEY) {
-      // Dev mode: log email without sending
-      console.log('[EmailService] RESEND_API_KEY not configured. Email NOT sent.')
-      console.log(`  Template: ${template}`)
-      console.log(`  To: ${recipientName} <${recipientEmail}>`)
-      console.log(`  Subject: ${subject}`)
-
-      return NextResponse.json({
-        success: true,
-        dev: true,
-        message: 'Email logged (RESEND_API_KEY not set — dev mode)',
-        template,
-        to: recipientEmail,
-        subject,
-      })
+      console.warn('[EmailService] RESEND_API_KEY environment variable is not configured.')
+      return NextResponse.json(
+        { success: false, error: 'RESEND_API_KEY missing in environment variables' },
+        { status: 500 }
+      )
     }
 
-    const resendRes = await fetch('https://api.resend.com/emails', {
+    const fromAddress = process.env.RESEND_FROM_EMAIL || 'AuditAI <onboarding@resend.dev>'
+
+    let resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'AuditAI by Yample Labs <noreply@yamplelabs.com>',
-        to: [`${recipientName} <${recipientEmail}>`],
+        from: fromAddress,
+        to: [recipientEmail],
         subject,
         html,
       }),
     })
 
-    const resendData = await resendRes.json()
+    let resendData = await resendRes.json()
+
+    // Retry with sandbox sender if custom domain is not yet verified on Resend
+    if (!resendRes.ok && (resendData?.message?.toLowerCase().includes('domain') || resendData?.statusCode === 403)) {
+      resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'AuditAI by Yample Labs <onboarding@resend.dev>',
+          to: [recipientEmail],
+          subject,
+          html,
+        }),
+      })
+      resendData = await resendRes.json()
+    }
 
     if (!resendRes.ok) {
       console.error('[EmailService] Resend error:', resendData)
