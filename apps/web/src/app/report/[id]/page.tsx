@@ -25,10 +25,18 @@ function AuditReportContent({ auditId }: { auditId: string }) {
   const { addItem, items } = useCart()
 
   useEffect(() => {
+    const cleanId = (auditId || '').replace(/^demo-/, 'audit-')
+
+    // Auto-clean any legacy demo- prefix from browser address bar
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/report/demo-')) {
+      const cleanPath = window.location.pathname.replace('/report/demo-', '/report/audit-')
+      window.history.replaceState(null, '', cleanPath + window.location.search)
+    }
+
     const loadAuditData = async () => {
       // 1. Try sessionStorage first (instant — set by /audit/[id] loading screen)
       if (typeof window !== 'undefined' && auditId) {
-        const stored = sessionStorage.getItem(`audit_data_${auditId}`)
+        const stored = sessionStorage.getItem(`audit_data_${auditId}`) || sessionStorage.getItem(`audit_data_${cleanId}`)
         if (stored) {
           try {
             setAuditData(JSON.parse(stored))
@@ -41,7 +49,7 @@ function AuditReportContent({ auditId }: { auditId: string }) {
       // 2. Fallback: fetch from DB via API (refresh-safe, with searchUrl query param)
       try {
         const queryParam = searchUrl ? `?url=${encodeURIComponent(searchUrl)}` : ''
-        const res = await fetch(`/api/audits/${auditId}${queryParam}`)
+        const res = await fetch(`/api/audits/${cleanId}${queryParam}`)
         const data = await res.json()
         if (data.success && data.data) {
           setAuditData(data.data)

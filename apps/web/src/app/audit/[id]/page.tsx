@@ -6,16 +6,16 @@ import Link from 'next/link'
 
 /* ── Loading steps ────────────────────────────────────────────────── */
 const STEPS = [
-  { id: 'validate',     label: 'Validating Website',           icon: '🌐', color: '#6366f1' },
-  { id: 'availability', label: 'Checking Availability',         icon: '🔌', color: '#8b5cf6' },
-  { id: 'screenshot',   label: 'Capturing Screenshot',          icon: '📸', color: '#a855f7' },
-  { id: 'performance',  label: 'Running Performance Analysis',  icon: '⚡', color: '#10b981' },
-  { id: 'seo',          label: 'Running SEO Analysis',          icon: '🔍', color: '#6366f1' },
-  { id: 'accessibility',label: 'Running Accessibility Checks',  icon: '♿', color: '#3b82f6' },
-  { id: 'security',     label: 'Running Security Checks',       icon: '🛡️', color: '#f59e0b' },
-  { id: 'ai',           label: 'AI Business Analysis',          icon: '🤖', color: '#ec4899' },
-  { id: 'report',       label: 'Generating Report',             icon: '📊', color: '#14b8a6' },
-  { id: 'dashboard',    label: 'Preparing Dashboard',           icon: '✨', color: '#f97316' },
+  { id: 'validate',     label: 'Validating Website',           icon: '1', color: '#6366f1' },
+  { id: 'availability', label: 'Checking Availability',         icon: '2', color: '#8b5cf6' },
+  { id: 'screenshot',   label: 'Capturing Screenshot',          icon: '3', color: '#a855f7' },
+  { id: 'performance',  label: 'Running Performance Analysis',  icon: '4', color: '#10b981' },
+  { id: 'seo',          label: 'Running SEO Analysis',          icon: '5', color: '#6366f1' },
+  { id: 'accessibility',label: 'Running Accessibility Checks',  icon: '6', color: '#3b82f6' },
+  { id: 'security',     label: 'Running Security Checks',       icon: '7', color: '#f59e0b' },
+  { id: 'ai',           label: 'AI Business Analysis',          icon: '8', color: '#ec4899' },
+  { id: 'report',       label: 'Generating Report',             icon: '9', color: '#14b8a6' },
+  { id: 'dashboard',    label: 'Preparing Dashboard',           icon: '10', color: '#f97316' },
 ]
 
 const POLL_INTERVAL_MS = 2000

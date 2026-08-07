@@ -5,8 +5,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params
+    const { id: rawId } = await params
+    const id = (rawId || '').replace(/^demo-/, 'audit-')
     const reqUrl = new URL(request.url)
     const targetUrlParam = reqUrl.searchParams.get('url')
 
