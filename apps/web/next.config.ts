@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Transpile workspace packages for Next.js / Vercel monorepo builds
+  transpilePackages: ['@auditai/shared', '@auditai/db', '@auditai/ai'],
+
   // Enable React strict mode for production quality
   reactStrictMode: true,
 
