@@ -24,8 +24,32 @@ function AuditFormContent() {
   const { geo } = useGeo()
   const isIndia = geo.isIndia
 
-  // Pre-fill URL from query param if someone navigates here directly
-  const [url, setUrl] = useState(searchParams.get('url') || '')
+  // Helper to extract clean target domain from any pasted or query string URL
+  const extractCleanDomain = (inputUrl: string): string => {
+    let raw = inputUrl.trim()
+    if (!raw) return ''
+
+    try {
+      const full = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+      const parsed = new URL(full)
+
+      // If a nested report URL was pasted (e.g. /report/demo-...?url=https://target.com)
+      const nested = parsed.searchParams.get('url')
+      if (nested) {
+        return extractCleanDomain(nested)
+      }
+
+      // Return clean origin or hostname
+      return parsed.hostname ? `https://${parsed.hostname}` : full
+    } catch {
+      return raw
+    }
+  }
+
+  const rawSearchUrl = searchParams ? searchParams.get('url') || '' : ''
+  const initialUrl = extractCleanDomain(rawSearchUrl)
+
+  const [url, setUrl] = useState(initialUrl)
   const [businessCategory, setBusinessCategory] = useState('General Business')
   const [country, setCountry] = useState(isIndia ? 'IN' : 'US')
   const [businessGoal, setBusinessGoal] = useState('More Leads')
@@ -39,7 +63,7 @@ function AuditFormContent() {
       return
     }
 
-    const cleanUrl = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+    const cleanUrl = extractCleanDomain(raw)
 
     try {
       new URL(cleanUrl)

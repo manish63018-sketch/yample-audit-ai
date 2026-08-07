@@ -13,10 +13,21 @@ export async function POST(request: Request) {
       )
     }
 
-    // Normalize URL
+    // Normalize & Extract clean target domain
     let formattedUrl = url.trim()
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = `https://${formattedUrl}`
+    try {
+      const full = /^https?:\/\//i.test(formattedUrl) ? formattedUrl : `https://${formattedUrl}`
+      const parsed = new URL(full)
+      const nested = parsed.searchParams.get('url')
+      if (nested) {
+        formattedUrl = /^https?:\/\//i.test(nested) ? nested : `https://${nested}`
+      } else {
+        formattedUrl = `${parsed.protocol}//${parsed.hostname}`
+      }
+    } catch {
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = `https://${formattedUrl}`
+      }
     }
 
     // Validate URL format
