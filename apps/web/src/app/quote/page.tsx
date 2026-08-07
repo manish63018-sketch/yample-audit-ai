@@ -23,11 +23,11 @@ const INDUSTRIES = [
 ]
 
 const TIMELINES = [
-  { label: 'ASAP (Rush)', value: 'asap', emoji: '⚡' },
-  { label: '1 Month', value: '1_month', emoji: '📅' },
-  { label: '3 Months', value: '3_months', emoji: '🗓️' },
-  { label: '6 Months', value: '6_months', emoji: '📆' },
-  { label: 'Flexible', value: 'flexible', emoji: '🕐' },
+  { label: 'ASAP (Rush)', value: 'asap' },
+  { label: '1 Month', value: '1_month' },
+  { label: '3 Months', value: '3_months' },
+  { label: '6 Months', value: '6_months' },
+  { label: 'Flexible', value: 'flexible' },
 ]
 
 const FEATURE_OPTIONS = [
@@ -196,8 +196,8 @@ export default function QuotePage() {
     return (
       <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center px-6">
         <div className="max-w-md w-full text-center">
-          <div className="w-20 h-20 rounded-2xl bg-green-500/20 border border-green-500/30 flex items-center justify-center text-4xl mx-auto mb-6">
-            🎉
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-2xl mx-auto mb-6">
+            ✓
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Quote Submitted!</h1>
           <p className="text-white/50 text-sm mb-6">
@@ -337,7 +337,7 @@ export default function QuotePage() {
                             : 'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white'
                         }`}
                       >
-                        {t.emoji} {t.label}
+                        {t.label}
                       </button>
                     ))}
                   </div>

@@ -120,45 +120,54 @@ export async function runSEO(options: RunnerOptions): Promise<SEOResult> {
     hasSitemapXml = false
   }
 
-  // Objective Scoring Rubric (0 - 100)
-  let score = 15 // Base score for indexable page
+  // Objective Dynamic SEO Scoring Rubric (0 - 100)
+  let score = 0
 
-  // Title: 20 points
+  // Title tag: 25 points
   if (title) {
-    if (titleLength >= 10 && titleLength <= 70) score += 20
-    else score += 12
+    if (titleLength >= 15 && titleLength <= 65) score += 25
+    else score += 15
   }
 
-  // Meta description: 20 points
+  // Meta description: 25 points
   if (metaDescription) {
-    if (metaDescriptionLength >= 40 && metaDescriptionLength <= 175) score += 20
-    else score += 12
+    if (metaDescriptionLength >= 50 && metaDescriptionLength <= 165) score += 25
+    else score += 15
   }
 
-  // H1 structure: 15 points
-  if (h1Matches.length >= 1) score += 15
+  // H1 Structure: 15 points
+  if (h1Matches.length === 1) score += 15
+  else if (h1Matches.length > 1) score += 8
 
   // Canonical tag: 10 points
-  if (canonical || url) score += 10
+  if (canonical) score += 10
 
   // OpenGraph: 10 points
-  if (ogTitleMatch || ogDescMatch || title) score += 10
+  if (ogTitleMatch || ogDescMatch || ogImageMatch) score += 10
 
   // Robots.txt & Sitemap: 10 points
-  score += 10
+  if (hasRobotsTxt) score += 5
+  if (hasSitemapXml) score += 5
 
-  // Schema Markup: 10 points
-  if (schemaTypes.length > 0 || html.includes('application/ld+json')) score += 10
-  else score += 5
+  // Schema Markup: 5 points
+  if (schemaTypes.length > 0) score += 5
+
+  // Penalty for missing Alt attributes on images
+  if (totalImages > 0 && imagesWithoutAlt > 0) {
+    const altRatio = (totalImages - imagesWithoutAlt) / totalImages
+    score = Math.round(score * (0.8 + 0.2 * altRatio))
+  }
+
+  const finalScore = Math.max(15, Math.min(100, score))
 
   return {
-    score: Math.min(score, 100),
-    title: title || 'Home — Website Title',
+    score: finalScore,
+    title: title || parsedUrl.hostname,
     titleLength,
-    metaDescription: metaDescription || 'Discover our services, products, and expertise.',
+    metaDescription: metaDescription || null,
     metaDescriptionLength,
     h1Count: h1Matches.length,
-    headings: headings.length > 0 ? headings : [{ level: 'h1', text: 'Main Heading' }],
+    headings: headings.length > 0 ? headings : [],
     canonical: canonical || url,
     hasRobotsTxt,
     hasSitemapXml,
@@ -169,9 +178,9 @@ export async function runSEO(options: RunnerOptions): Promise<SEOResult> {
     },
     twitterCard: {
       card: 'summary_large_image',
-      title,
+      title: title || parsedUrl.hostname,
     },
-    totalImages: totalImages || 1,
+    totalImages,
     imagesWithoutAlt,
     internalLinksCount,
     externalLinksCount,

@@ -15,7 +15,7 @@ import { ArrowRight, Search, Zap, CheckCircle2, ShieldCheck, TrendingUp, Award, 
 const SERVICES = [
   {
     id: 'website-upgrade',
-    icon: '⚡',
+    icon: Zap,
     title: 'Website Upgrade',
     short: 'Performance, SEO & UI overhaul',
     price: 599,
@@ -26,7 +26,7 @@ const SERVICES = [
   },
   {
     id: 'custom-website',
-    icon: '🌐',
+    icon: Globe,
     title: 'Custom Website Development',
     short: 'Professional website from scratch',
     price: 899,
@@ -37,18 +37,18 @@ const SERVICES = [
   },
   {
     id: 'ai-automation',
-    icon: '🤖',
+    icon: Sparkles,
     title: 'AI Automation & Chatbots',
     short: 'Custom AI assistants & lead agents',
     price: 799,
     timeline: '12 days',
     benefits: ['24/7 AI customer support', 'Lead qualification', 'WhatsApp integration'],
     description: 'Deploy AI assistants that handle customer queries, qualify leads automatically, and integrate with your CRM.',
-    badge: '🔥 Hot',
+    badge: 'Featured',
   },
   {
     id: 'web-app',
-    icon: '🖥️',
+    icon: Code2,
     title: 'Web Applications & SaaS',
     short: 'Full-stack web apps & dashboards',
     price: 1299,
@@ -59,7 +59,7 @@ const SERVICES = [
   },
   {
     id: 'mobile-app',
-    icon: '📱',
+    icon: Rocket,
     title: 'Mobile Applications',
     short: 'iOS & Android cross-platform app',
     price: 1499,
@@ -70,7 +70,7 @@ const SERVICES = [
   },
   {
     id: 'enterprise-saas',
-    icon: '☁️',
+    icon: ShieldCheck,
     title: 'Enterprise SaaS Platforms',
     short: 'Multi-tenant scalable platforms',
     price: 3499,
@@ -105,7 +105,7 @@ const PRICING = [
     name: 'Professional SaaS',
     price: '$1,999',
     highlight: true,
-    badge: '⭐ Most Popular',
+    badge: 'Most Popular',
     sub: 'Full redesign + AI systems for growing businesses',
     features: [
       'Everything in Starter',
@@ -142,10 +142,10 @@ const PRICING = [
 ]
 
 const TRUST_METRICS = [
-  { value: '100+', label: 'Websites Audited', sub: 'Instant AI diagnostic reports', icon: '🌐', color: '#4F8CFF' },
-  { value: '50+', label: 'Projects Delivered', sub: 'High-conversion SaaS web apps', icon: '🚀', color: '#8B5CF6' },
-  { value: '99%', label: 'Client Satisfaction', sub: '5-star agency experience', icon: '⭐', color: '#38BDF8' },
-  { value: '24/7', label: 'AI Monitoring', sub: 'Real-time issue detection', icon: '🤖', color: '#22C55E' },
+  { value: '100+', label: 'Websites Audited', sub: 'Instant AI diagnostic reports', icon: Globe, color: '#4F8CFF' },
+  { value: '50+', label: 'Projects Delivered', sub: 'High-conversion SaaS web apps', icon: TrendingUp, color: '#8B5CF6' },
+  { value: '99%', label: 'Client Satisfaction', sub: 'Enterprise agency experience', icon: Award, color: '#38BDF8' },
+  { value: '24/7', label: 'AI Monitoring', sub: 'Real-time issue detection', icon: ShieldCheck, color: '#22C55E' },
 ]
 
 const FAQS = [
@@ -180,8 +180,14 @@ function ServiceDetailPopup({ service, onClose }: { service: typeof SERVICES[0];
         onClick={e => e.stopPropagation()}
         style={{ animation: 'scale-in 0.2s ease-out' }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors text-xl">✕</button>
-        <div className="text-4xl mb-3">{service.icon}</div>
+        {(() => {
+          const Icon = service.icon
+          return (
+            <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+              <Icon className="w-6 h-6" />
+            </div>
+          )
+        })()}
         <div className="flex items-center gap-2 mb-1">
           <h3 className="text-xl font-bold text-white">{service.title}</h3>
           {service.badge && (
@@ -230,11 +236,57 @@ export default function LandingPage() {
   const [urlInput, setUrlInput] = useState('')
   const [selectedService, setSelectedService] = useState<typeof SERVICES[0] | null>(null)
   const [activeFaq, setActiveFaq] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
-  const handleAuditSubmit = (e: FormEvent) => {
+  const handleAuditSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!urlInput.trim()) return
-    router.push(`/audit?url=${encodeURIComponent(urlInput.trim())}`)
+    const raw = urlInput.trim()
+    if (!raw) return
+
+    setIsSubmitting(true)
+    setSubmitError('')
+
+    try {
+      const cleanUrl = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+
+      const res = await fetch('/api/audits/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: cleanUrl,
+          businessCategory: 'General Business',
+          country: 'US',
+          businessGoal: 'More Leads',
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        setSubmitError(data.error?.message || 'Failed to start audit. Please try again.')
+        setIsSubmitting(false)
+        return
+      }
+
+      const auditId = data.auditId
+
+      // Save audit params to localStorage so /audit/[id] can access them
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`audit_meta_${auditId}`, JSON.stringify({
+          url: data.url || cleanUrl,
+          businessCategory: 'General Business',
+          country: 'US',
+          businessGoal: 'More Leads',
+        }))
+      }
+
+      // Redirect directly to the loading screen — user never sees the audit form
+      router.push(`/audit/${auditId}`)
+    } catch {
+      setSubmitError('Network error. Please check your connection and try again.')
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -282,25 +334,39 @@ export default function LandingPage() {
                 <div className="flex-1 flex items-center gap-3 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                   <Search className="w-5 h-5 text-purple-400 shrink-0" />
                   <input
-                    type="url"
+                    type="text"
                     id="hero-url-input"
                     aria-label="Website URL to analyze"
                     value={urlInput}
                     onChange={e => setUrlInput(e.target.value)}
-                    placeholder="Paste Website URL (e.g., https://yourwebsite.com)"
+                    placeholder="Enter Website URL (e.g., yourwebsite.com)"
                     required
                     className="w-full bg-transparent text-sm text-white placeholder-slate-400 outline-none"
                   />
                 </div>
                 <button
                   type="submit"
+                  id="hero-analyze-button"
                   aria-label="Analyze Website"
-                  className="btn-gradient-primary px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 whitespace-nowrap"
+                  disabled={isSubmitting}
+                  className="btn-gradient-primary px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <span>Analyze</span>
-                  <Zap className="w-4 h-4 fill-white" />
+                  {isSubmitting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Starting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Analyze</span>
+                      <Zap className="w-4 h-4 fill-white" />
+                    </>
+                  )}
                 </button>
               </form>
+              {submitError && (
+                <p className="text-red-400 text-xs mt-2 ml-2" id="hero-url-error">{submitError}</p>
+              )}
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-4 pt-2">
@@ -345,19 +411,22 @@ export default function LandingPage() {
         <section className="py-16 border-y border-white/5 bg-[#0F172A]/40 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {TRUST_METRICS.map((m, i) => (
-                <div
-                  key={i}
-                  className="glass-card p-6 text-center group hover:scale-[1.02] transition-all duration-300"
-                >
-                  <div className="text-3xl mb-2">{m.icon}</div>
-                  <div className="text-4xl font-extrabold text-white tracking-tight mb-1" style={{ color: m.color }}>
-                    {m.value}
+              {TRUST_METRICS.map((m, i) => {
+                const Icon = m.icon
+                return (
+                  <div
+                    key={i}
+                    className="glass-card p-6 text-center group hover:scale-[1.02] transition-all duration-300"
+                  >
+                    <Icon className="w-6 h-6 mx-auto mb-2" style={{ color: m.color }} />
+                    <div className="text-4xl font-extrabold text-white tracking-tight mb-1" style={{ color: m.color }}>
+                      {m.value}
+                    </div>
+                    <div className="text-sm font-bold text-slate-200">{m.label}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{m.sub}</div>
                   </div>
-                  <div className="text-sm font-bold text-slate-200">{m.label}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">{m.sub}</div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
@@ -442,37 +511,42 @@ export default function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {SERVICES.map(service => (
-                <div
-                  key={service.id}
-                  onClick={() => setSelectedService(service)}
-                  className="glass-card p-6 cursor-pointer flex flex-col justify-between group hover:border-purple-500/50"
-                >
-                  <div>
-                    {service.badge && (
-                      <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-3">
-                        {service.badge}
-                      </span>
-                    )}
-                    <div className="text-4xl mb-4">{service.icon}</div>
-                    <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors mb-2">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs text-slate-400 mb-6 leading-relaxed">{service.short}</p>
-                  </div>
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+              {SERVICES.map(service => {
+                const Icon = service.icon
+                return (
+                  <div
+                    key={service.id}
+                    onClick={() => setSelectedService(service)}
+                    className="glass-card p-6 cursor-pointer flex flex-col justify-between group hover:border-purple-500/50"
+                  >
                     <div>
-                      <span className="text-xs text-slate-400">Starting at</span>
-                      <div className="text-lg font-bold text-white">
-                        {service.price === 0 ? 'Custom' : `$${service.price}`}
+                      {service.badge && (
+                        <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-3">
+                          {service.badge}
+                        </span>
+                      )}
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
+                        <Icon className="w-5 h-5" />
                       </div>
+                      <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors mb-2">
+                        {service.title}
+                      </h3>
+                      <p className="text-xs text-slate-400 mb-6 leading-relaxed">{service.short}</p>
                     </div>
-                    <span className="text-xs font-semibold text-purple-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                      View Scope →
-                    </span>
+                    <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                      <div>
+                        <span className="text-xs text-slate-400">Starting at</span>
+                        <div className="text-lg font-bold text-white">
+                          {service.price === 0 ? 'Custom' : `$${service.price}`}
+                        </div>
+                      </div>
+                      <span className="text-xs font-semibold text-purple-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                        View Scope →
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>

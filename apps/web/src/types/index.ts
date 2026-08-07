@@ -225,6 +225,85 @@ export interface Proposal {
 }
 
 // ============================================================
+// Enterprise SaaS Entities
+// ============================================================
+
+export interface DigitalContract {
+  id: string
+  contract_id: string
+  order_id: string
+  signed_by_user_id: string | null
+  client_name: string
+  signature_text: string
+  signature_hash: string
+  msa_version: string
+  ip_address: string | null
+  user_agent: string | null
+  signed_at: string
+  created_at: string
+}
+
+export interface ProjectRevision {
+  id: string
+  revision_id: string
+  order_id: string
+  requested_by: string | null
+  title: string
+  details: string
+  round_number: number
+  status: 'submitted' | 'under_review' | 'in_progress' | 'completed' | 'declined'
+  admin_notes: string | null
+  completed_at: string | null
+  created_at: string
+}
+
+export interface ProjectFile {
+  id: string
+  order_id: string
+  uploaded_by: string | null
+  file_name: string
+  storage_path: string
+  file_size_bytes: number | null
+  mime_type: string | null
+  is_client_visible: boolean
+  created_at: string
+}
+
+export interface OrderConsent {
+  id: string
+  order_id: string | null
+  user_id: string | null
+  ip_address: string | null
+  user_agent: string | null
+  policy_version: string
+  consent_terms: boolean
+  consent_privacy: boolean
+  consented_at: string
+}
+
+export interface LoginHistory {
+  id: string
+  user_id: string
+  ip_address: string | null
+  user_agent: string | null
+  country: string | null
+  city: string | null
+  login_status: 'success' | 'failed'
+  logged_in_at: string
+}
+
+export interface ActivityLog {
+  id: string
+  actor_id: string | null
+  action: string
+  entity_type: string
+  entity_id: string | null
+  metadata: Record<string, unknown>
+  ip_address: string | null
+  created_at: string
+}
+
+// ============================================================
 // API response shapes
 // ============================================================
 

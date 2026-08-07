@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 const CONFETTI_COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']
 
@@ -40,13 +41,25 @@ function Confetti() {
   )
 }
 
-export default function ThankYouPage() {
+/* ── Detect payment method from URL params ──────────────────────── */
+type PaymentMethod = 'razorpay' | 'stripe' | 'proposal' | null
+
+function ThankYouContent() {
+  const searchParams = useSearchParams()
   const [show, setShow] = useState(false)
+
+  const payment = searchParams.get('payment') as PaymentMethod
+  const paymentId = searchParams.get('id') || searchParams.get('session_id') || ''
+  const isDemo = searchParams.get('demo') === '1' || searchParams.get('mode') === 'demo'
 
   useEffect(() => {
     const t = setTimeout(() => setShow(true), 100)
     return () => clearTimeout(t)
   }, [])
+
+  const isRazorpay = payment === 'razorpay'
+  const isStripe = payment === 'stripe' || !!searchParams.get('session_id')
+  const isPaidOrder = isRazorpay || isStripe
 
   return (
     <div className="min-h-screen bg-[#08080f] text-white flex items-center justify-center relative overflow-hidden">
@@ -59,31 +72,61 @@ export default function ThankYouPage() {
       </div>
 
       <div className={`relative z-10 text-center max-w-lg px-6 transition-all duration-700 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        {/* Animation */}
+        {/* Success icon */}
         <div className="relative inline-flex items-center justify-center mb-6">
-          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-violet-600/30 to-indigo-600/30 border border-violet-500/30 flex items-center justify-center text-5xl animate-pulse-slow shadow-2xl shadow-violet-500/20">
-            🎉
+          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-violet-600/30 to-indigo-600/30 border border-violet-500/30 flex items-center justify-center text-5xl shadow-2xl shadow-violet-500/20"
+            style={{ animation: 'pulse-slow 2s ease-in-out infinite' }}>
+            {isPaidOrder ? '💳' : '🎉'}
           </div>
           <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm animate-bounce">✓</div>
         </div>
 
+        {/* Heading — changes based on payment method */}
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-          Proposal Sent!
+          {isPaidOrder ? 'Payment Successful!' : 'Proposal Sent!'}
         </h1>
+
+        {/* Payment method badge */}
+        {isRazorpay && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-semibold mb-4">
+            🇮🇳 Paid via Razorpay {isDemo ? '(Demo Mode)' : ''}
+          </div>
+        )}
+        {isStripe && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-semibold mb-4">
+            💳 Paid via Stripe {isDemo ? '(Demo Mode)' : ''}
+          </div>
+        )}
+
         <p className="text-white/50 text-lg mb-2">
           Thank you for choosing Yample Labs.
         </p>
         <p className="text-white/40 text-sm mb-10 leading-relaxed">
-          Our team will review your project summary and contact you within <span className="text-violet-300 font-medium">24 hours</span> with a full proposal, timeline, and next steps.
+          {isPaidOrder
+            ? <>Your payment has been confirmed and your project is now <span className="text-violet-300 font-medium">queued for kickoff</span>. Our team will contact you within <span className="text-violet-300 font-medium">2 hours</span>.</>
+            : <>Our team will review your project summary and contact you within <span className="text-violet-300 font-medium">24 hours</span> with a full proposal, timeline, and next steps.</>
+          }
         </p>
+
+        {/* Payment ID reference */}
+        {paymentId && !isDemo && (
+          <div className="rounded-xl border border-white/5 bg-white/3 px-4 py-3 mb-6 text-left">
+            <div className="text-xs text-white/30 mb-1">Payment Reference</div>
+            <div className="text-xs text-white/60 font-mono break-all">{paymentId}</div>
+          </div>
+        )}
 
         {/* What's next */}
         <div className="rounded-2xl border border-white/5 bg-white/3 p-5 mb-8 text-left space-y-3">
-          {[
+          {(isPaidOrder ? [
+            { icon: '📧', title: 'Check your inbox', desc: 'Payment receipt sent to your email.' },
+            { icon: '📞', title: 'We\'ll call within 2 hours', desc: 'Your project is already being assigned.' },
+            { icon: '🚀', title: 'Project kicks off!', desc: 'Kickoff call within 24 hours of payment.' },
+          ] : [
             { icon: '📧', title: 'Check your inbox', desc: 'A confirmation has been sent to your email.' },
             { icon: '📞', title: 'We\'ll call within 24h', desc: 'Our team reviews every project personally.' },
             { icon: '📄', title: 'Full proposal coming', desc: 'Detailed scope, timeline & investment breakdown.' },
-          ].map((s, i) => (
+          ]).map((s, i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="text-2xl">{s.icon}</span>
               <div>
@@ -129,5 +172,17 @@ export default function ThankYouPage() {
         .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
       `}</style>
     </div>
+  )
+}
+
+export default function ThankYouPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#08080f] text-white flex items-center justify-center">
+        <div className="text-white/40 text-sm">Loading...</div>
+      </div>
+    }>
+      <ThankYouContent />
+    </Suspense>
   )
 }

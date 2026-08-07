@@ -62,20 +62,24 @@ export class AuditOrchestrator {
     const auditRepo = new AuditRepository(adminClient)
     const reportRepo = new ReportRepository(adminClient)
 
-    let auditId = `audit-${Date.now()}`
+    // Use pre-created audit ID (from /api/audits/start) if available
+    let auditId = payload._existingAuditId || `audit-${Date.now()}`
 
-    // 1. Database entry creation
-    try {
-      const audit = await auditRepo.create({
-        website_id: websiteId || null,
-        organization_id: organizationId || null,
-        status: 'running',
-        started_at: new Date().toISOString(),
-      })
-      auditId = audit.id
-    } catch {
-      // Continue cleanly in local dev if DB unconfigured
+    // Only create a new DB entry if no existing ID was provided
+    if (!payload._existingAuditId) {
+      try {
+        const audit = await auditRepo.create({
+          website_id: websiteId || null,
+          organization_id: organizationId || null,
+          status: 'running',
+          started_at: new Date().toISOString(),
+        })
+        auditId = audit.id
+      } catch {
+        // Continue cleanly in local dev if DB unconfigured
+      }
     }
+
 
     const runnerOpts = { url, timeoutMs: 10000 }
 
@@ -244,7 +248,28 @@ export class AuditOrchestrator {
     // STEP 13: Smart Quote Generator
     const quote = generateSmartQuote(scores, business, security, country)
 
-    // STEP 15: Save all reports to Supabase
+    const finalResult: AuditOrchestratorResult = {
+      auditId,
+      url,
+      status: 'completed',
+      scores,
+      system,
+      crawl,
+      business,
+      competitors,
+      revenue,
+      quote,
+      aiSummary,
+      reports: {
+        pagespeed,
+        lighthouse,
+        accessibility,
+        seo,
+        security,
+      },
+    }
+
+    // STEP 15: Save all reports & full payload to Supabase
     try {
       await Promise.all([
         reportRepo.savePagespeedReport({
@@ -290,6 +315,7 @@ export class AuditOrchestrator {
           summary: aiSummary.summary,
           recommendations: (aiSummary.recommendations as unknown as Json) || null,
         }),
+        reportRepo.saveGenericReport(auditId, 'full_audit', finalResult as unknown as Json),
       ])
 
       await auditRepo.updateStatus(auditId, 'completed', scores.overall, new Date().toISOString())
@@ -297,26 +323,7 @@ export class AuditOrchestrator {
       // Continue cleanly if DB unconfigured
     }
 
-    return {
-      auditId,
-      url,
-      status: 'completed',
-      scores,
-      system,
-      crawl,
-      business,
-      competitors,
-      revenue,
-      quote,
-      aiSummary,
-      reports: {
-        pagespeed,
-        lighthouse,
-        accessibility,
-        seo,
-        security,
-      },
-    }
+    return finalResult
   }
 }
 

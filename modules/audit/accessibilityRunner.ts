@@ -33,7 +33,7 @@ export async function runAccessibility(
 
   const issues: AccessibilityIssue[] = []
   const warnings: AccessibilityIssue[] = []
-  let passedCount = 20 // baseline checks passed
+  let passedCount = 15 // baseline checks passed
 
   // 1. Check <html lang="...">
   const hasLang = /<html[^>]+lang=["'][^"']+["']/i.test(html)
@@ -127,23 +127,23 @@ export async function runAccessibility(
     passedCount += 2
   }
 
-  // Calculate score
-  let score = 98
+  // Calculate true objective score
+  let score = 100
   issues.forEach((i) => {
-    if (i.impact === 'critical') score -= 5
-    else if (i.impact === 'serious') score -= 3
-    else if (i.impact === 'moderate') score -= 2
+    if (i.impact === 'critical') score -= 12
+    else if (i.impact === 'serious') score -= 8
+    else if (i.impact === 'moderate') score -= 5
   })
 
   warnings.forEach(() => {
-    score -= 2
+    score -= 4
   })
 
-  const calculatedScore = Math.max(82, Math.min(100, score))
+  const calculatedScore = Math.max(25, Math.min(100, score))
   const finalScore = psiAccessibilityScore ? Math.round((calculatedScore + psiAccessibilityScore) / 2) : calculatedScore
 
   return {
-    score: Math.max(85, finalScore),
+    score: Math.max(30, Math.min(100, finalScore)),
     passedCount,
     issues,
     warnings,

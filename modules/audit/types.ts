@@ -219,6 +219,8 @@ export interface AuditRunPayload {
   businessGoal?: string
   websiteId?: string
   organizationId?: string
+  /** Pre-created audit ID from /api/audits/start — avoids creating a duplicate DB record */
+  _existingAuditId?: string
   options?: {
     pagespeed?: boolean
     lighthouse?: boolean
@@ -228,3 +230,4 @@ export interface AuditRunPayload {
     ai?: boolean
   }
 }
+

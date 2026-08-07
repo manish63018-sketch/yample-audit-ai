@@ -18,7 +18,7 @@ const NAV_LINKS = [
   { label: 'Solutions', href: '#services' },
   { label: 'Pricing', href: '#pricing' },
   { label: 'Case Studies', href: '/case-studies' },
-  { label: 'Resources', href: '/sample-report' },
+  { label: 'FAQ', href: '/faq' },
   { label: 'Contact', href: '#contact' },
 ] as const
 

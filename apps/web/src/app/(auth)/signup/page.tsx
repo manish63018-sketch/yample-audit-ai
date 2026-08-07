@@ -3,34 +3,91 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { UserPlus, AlertCircle } from 'lucide-react'
+import {
+  UserPlus,
+  AlertCircle,
+  Phone,
+  Globe,
+  Building2,
+  ChevronDown,
+  ShieldCheck,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input, Field } from '@/components/ui/input'
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card'
 import { useAuth } from '@/providers/auth-provider'
 
+const COUNTRIES = [
+  { code: 'IN', name: 'India' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'NL', name: 'Netherlands' },
+  { code: 'PK', name: 'Pakistan' },
+  { code: 'BD', name: 'Bangladesh' },
+  { code: 'NZ', name: 'New Zealand' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'KE', name: 'Kenya' },
+  { code: 'PH', name: 'Philippines' },
+  { code: 'MY', name: 'Malaysia' },
+  { code: 'ID', name: 'Indonesia' },
+  { code: 'BR', name: 'Brazil' },
+  { code: 'MX', name: 'Mexico' },
+  { code: 'OTHER', name: 'Other' },
+]
+
 export default function SignupPage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [mobile, setMobile] = useState('')
+  const [country, setCountry] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  // Consent checkboxes
+  const [consentPrivacy, setConsentPrivacy] = useState(false)
+  const [consentTerms, setConsentTerms] = useState(false)
+  const [consentCookies, setConsentCookies] = useState(false)
+  const [consentDataProcessing, setConsentDataProcessing] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { signUp } = useAuth()
   const router = useRouter()
 
+  const allConsentsGiven = consentPrivacy && consentTerms && consentCookies && consentDataProcessing
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!fullName || !email || !password || !companyName) {
-      setError('Please fill in all required fields.')
+    // Validate required fields
+    if (!fullName || !email || !mobile || !country || !password) {
+      setError('Please fill in all required fields (Full Name, Email, Mobile, Country, Password).')
       return
     }
 
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match. Please re-enter.')
+      return
+    }
+
+    if (!allConsentsGiven) {
+      setError('You must accept all consent checkboxes before creating your account.')
       return
     }
 
@@ -42,6 +99,16 @@ export default function SignupPage() {
         email,
         password,
         companyName,
+        // Extra metadata stored in user profile
+        // @ts-ignore – extended params
+        mobile,
+        country,
+        websiteUrl,
+        consentPrivacy,
+        consentTerms,
+        consentCookies,
+        consentDataProcessing,
+        consentAt: new Date().toISOString(),
       })
       router.push('/dashboard')
     } catch (err: unknown) {
@@ -55,8 +122,8 @@ export default function SignupPage() {
   return (
     <Card variant="elevated" padding="lg" className="w-full">
       <CardHeader
-        title={<span className="text-xl font-semibold">Start Free AuditAI Account</span>}
-        description="Create your account to start auditing websites with AI."
+        title={<span className="text-xl font-semibold">Create Your AuditAI Account</span>}
+        description="Join thousands of businesses using AI-powered website audits."
       />
 
       <CardBody className="mt-4">
@@ -71,11 +138,12 @@ export default function SignupPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <Field label="Full Name" htmlFor="fullName" required>
+          {/* Full Name */}
+          <Field label="Full Name" htmlFor="signup-fullName" required>
             <Input
-              id="fullName"
+              id="signup-fullName"
               type="text"
-              placeholder="Sarah Connor"
+              placeholder="Rahul Sharma"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               autoComplete="name"
@@ -83,11 +151,12 @@ export default function SignupPage() {
             />
           </Field>
 
-          <Field label="Work Email" htmlFor="email" required>
+          {/* Email */}
+          <Field label="Email Address" htmlFor="signup-email" required>
             <Input
-              id="email"
+              id="signup-email"
               type="email"
-              placeholder="sarah@agency.com"
+              placeholder="rahul@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
@@ -95,20 +164,81 @@ export default function SignupPage() {
             />
           </Field>
 
-          <Field label="Company / Agency Name" htmlFor="companyName" required hint="Used to create your workspace domain.">
-            <Input
-              id="companyName"
-              type="text"
-              placeholder="Apex Creative Agency"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              required
-            />
+          {/* Mobile */}
+          <Field label="Mobile / WhatsApp Number" htmlFor="signup-mobile" required hint="Include country code e.g. +91 98765 43210">
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Input
+                id="signup-mobile"
+                type="tel"
+                placeholder="+91 98765 43210"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                autoComplete="tel"
+                required
+                className="pl-9"
+              />
+            </div>
           </Field>
 
-          <Field label="Password" htmlFor="password" required hint="Minimum 8 characters.">
+          {/* Country */}
+          <Field label="Country" htmlFor="signup-country" required>
+            <div className="relative">
+              <select
+                id="signup-country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-colors"
+              >
+                <option value="" disabled className="bg-slate-900 text-slate-400">
+                  Select your country…
+                </option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.name} className="bg-slate-900 text-white">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            </div>
+          </Field>
+
+          {/* Company Name (optional) */}
+          <Field label="Company Name" htmlFor="signup-company" hint="Optional — leave blank if freelancer">
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Input
+                id="signup-company"
+                type="text"
+                placeholder="Yample Labs (optional)"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </Field>
+
+          {/* Website URL (optional) */}
+          <Field label="Website URL" htmlFor="signup-website" hint="Optional — your current website">
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Input
+                id="signup-website"
+                type="url"
+                placeholder="https://yourwebsite.com (optional)"
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                autoComplete="url"
+                className="pl-9"
+              />
+            </div>
+          </Field>
+
+          {/* Password */}
+          <Field label="Password" htmlFor="signup-password" required hint="Minimum 8 characters.">
             <Input
-              id="password"
+              id="signup-password"
               type="password"
               placeholder="••••••••"
               value={password}
@@ -118,23 +248,109 @@ export default function SignupPage() {
             />
           </Field>
 
+          {/* Confirm Password */}
+          <Field label="Confirm Password" htmlFor="signup-confirm-password" required>
+            <Input
+              id="signup-confirm-password"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </Field>
+
+          {/* ====== CONSENT SECTION ====== */}
+          <div className="pt-2 pb-1 space-y-3 border border-white/10 rounded-xl p-4 bg-white/[0.02]">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck className="h-4 w-4 text-violet-400" />
+              <span className="text-xs font-bold text-white uppercase tracking-wider">Your Consent & Agreements</span>
+            </div>
+
+            {[
+              {
+                id: 'consent-privacy',
+                checked: consentPrivacy,
+                onChange: setConsentPrivacy,
+                label: (
+                  <>
+                    I have read and agree to the{' '}
+                    <Link href="/privacy" target="_blank" className="text-violet-400 hover:underline font-semibold">
+                      Privacy Policy
+                    </Link>
+                  </>
+                ),
+              },
+              {
+                id: 'consent-terms',
+                checked: consentTerms,
+                onChange: setConsentTerms,
+                label: (
+                  <>
+                    I agree to the{' '}
+                    <Link href="/terms" target="_blank" className="text-violet-400 hover:underline font-semibold">
+                      Terms & Conditions
+                    </Link>
+                  </>
+                ),
+              },
+              {
+                id: 'consent-cookies',
+                checked: consentCookies,
+                onChange: setConsentCookies,
+                label: (
+                  <>
+                    I accept the use of cookies as described in the{' '}
+                    <Link href="/cookies" target="_blank" className="text-violet-400 hover:underline font-semibold">
+                      Cookie Policy
+                    </Link>
+                  </>
+                ),
+              },
+              {
+                id: 'consent-data',
+                checked: consentDataProcessing,
+                onChange: setConsentDataProcessing,
+                label: (
+                  <>
+                    I consent to processing of my personal data for quote generation, project management, and service delivery by Yample Labs
+                  </>
+                ),
+              },
+            ].map((item) => (
+              <label key={item.id} htmlFor={item.id} className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  id={item.id}
+                  type="checkbox"
+                  checked={item.checked}
+                  onChange={(e) => item.onChange(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border border-white/20 bg-white/5 accent-violet-500 cursor-pointer"
+                />
+                <span className="text-xs text-slate-300 leading-relaxed group-hover:text-white transition-colors">
+                  {item.label}
+                </span>
+              </label>
+            ))}
+
+            {!allConsentsGiven && (
+              <p className="text-[10px] text-amber-400 mt-1">
+                ⚠ All checkboxes are required to create your account.
+              </p>
+            )}
+          </div>
+
           <Button
             type="submit"
             variant="primary"
             size="lg"
             className="w-full mt-2"
             isLoading={isSubmitting}
+            disabled={!allConsentsGiven}
             leftIcon={<UserPlus className="h-4 w-4" aria-hidden="true" />}
           >
             Create Free Account
           </Button>
-
-          <p className="text-[0.75rem] text-text-muted text-center leading-relaxed">
-            By signing up, you agree to our{' '}
-            <Link href="/terms" className="text-brand hover:underline">Terms of Service</Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="text-brand hover:underline">Privacy Policy</Link>.
-          </p>
         </form>
       </CardBody>
 

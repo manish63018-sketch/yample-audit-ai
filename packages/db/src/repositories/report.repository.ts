@@ -6,6 +6,7 @@ export type LighthouseRow = Database['public']['Tables']['lighthouse_reports']['
 export type AccessibilityRow = Database['public']['Tables']['accessibility_reports']['Row']
 export type SeoRow = Database['public']['Tables']['seo_reports']['Row']
 export type AiRow = Database['public']['Tables']['ai_reports']['Row']
+export type GenericReportRow = Database['public']['Tables']['reports']['Row']
 
 export class ReportRepository {
   constructor(private readonly client: TypedSupabaseClient) {}
@@ -135,14 +136,39 @@ export class ReportRepository {
     return data
   }
 
+  // Generic Report (for full audit object backup)
+  async saveGenericReport(auditId: string, type: string, payload: any): Promise<GenericReportRow | null> {
+    const { data, error } = await this.client
+      .from('reports')
+      .insert({ audit_id: auditId, type, payload })
+      .select('*')
+      .single()
+
+    if (error) return null
+    return data
+  }
+
+  async getGenericReport(auditId: string, type: string): Promise<GenericReportRow | null> {
+    const { data, error } = await this.client
+      .from('reports')
+      .select('*')
+      .eq('audit_id', auditId)
+      .eq('type', type)
+      .single()
+
+    if (error) return null
+    return data
+  }
+
   // Consolidated Full Report
   async getFullAuditReport(auditId: string) {
-    const [pagespeed, lighthouse, accessibility, seo, ai] = await Promise.all([
+    const [pagespeed, lighthouse, accessibility, seo, ai, genericFull] = await Promise.all([
       this.getPagespeedReport(auditId),
       this.getLighthouseReport(auditId),
       this.getAccessibilityReport(auditId),
       this.getSeoReport(auditId),
       this.getAiReport(auditId),
+      this.getGenericReport(auditId, 'full_audit'),
     ])
 
     return {
@@ -151,6 +177,7 @@ export class ReportRepository {
       accessibility,
       seo,
       ai,
+      fullResult: genericFull?.payload || null,
     }
   }
 }
