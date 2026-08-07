@@ -5,6 +5,7 @@ import './globals.css'
 import { AuthProvider } from '@/providers/auth-provider'
 import { CartProvider } from '@/context/CartContext'
 import { GeoProvider } from '@/context/GeoContext'
+import { DeveloperDiagnosticsPanel } from '@/components/DeveloperDiagnosticsPanel'
 
 /**
  * Root layout — wraps every page in the application.
@@ -144,6 +145,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <GeoProvider>
             <CartProvider>
               <main id="main-content">{children}</main>
+              <DeveloperDiagnosticsPanel />
             </CartProvider>
           </GeoProvider>
         </AuthProvider>
