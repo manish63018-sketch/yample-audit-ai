@@ -1,6 +1,11 @@
 'use client'
 
+import { useState, useEffect, use, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { PDFGenerator } from '@/components/report/PDFGenerator'
+import { AIWebsiteSimulator } from '@/components/report/AIWebsiteSimulator'
+import { useCart } from '@/context/CartContext'
 import {
   CheckCircle2,
   XCircle,
@@ -18,9 +23,7 @@ import {
   ShoppingCart,
 } from 'lucide-react'
 
-export default function AuditReportPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-  const resolvedParams = (typeof (params as any)?.then === 'function' ? use(params as Promise<{ id: string }>) : params) as { id: string }
-  const auditId = resolvedParams.id
+function AuditReportContent({ auditId }: { auditId: string }) {
   const searchParams = useSearchParams()
   const searchUrl = searchParams ? searchParams.get('url') || '' : ''
 
@@ -69,7 +72,9 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
     )
-  }  const fallbackUrl = searchUrl ? searchUrl.replace(/^https?:\/\//, '') : 'yampleauditai.vercel.app'
+  }
+
+  const fallbackUrl = searchUrl ? searchUrl.replace(/^https?:\/\//, '') : 'yampleauditai.vercel.app'
   const url = auditData?.url ? auditData.url.replace(/^https?:\/\//, '') : fallbackUrl
 
   const scores = auditData?.scores || {
@@ -133,23 +138,23 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
   const dynamicBeforeAfter = [
     {
       feature: 'Page Speed & Core Web Vitals (LCP)',
-      before: lcp ? `❌ ${lcp}s LCP Latency` : `❌ Score ${scores.performance}/100`,
-      after: '✅ Sub-1.5s Fast Load',
+      before: lcp ? `Score ${scores.performance}/100` : `Score ${scores.performance}/100`,
+      after: 'Sub-1.5s Fast Load',
     },
     {
       feature: 'Search Engine Optimization',
-      before: `❌ SEO Score ${scores.seo}/100`,
-      after: '✅ 90+ SEO & Schema Markup',
+      before: `SEO Score ${scores.seo}/100`,
+      after: '90+ SEO & Schema Markup',
     },
     {
       feature: 'Security & HTTP Headers',
-      before: `❌ Security Score ${scores.security}/100`,
-      after: '✅ HSTS, CSP & SSL Hardened',
+      before: `Security Score ${scores.security}/100`,
+      after: 'HSTS, CSP & SSL Hardened',
     },
     {
       feature: 'Lead Generation & AI Assistant',
-      before: missingFeats.length > 0 ? `❌ Missing ${missingFeats.length} Lead Features` : '❌ Manual Intake',
-      after: '✅ 24/7 AI Lead Qualifier',
+      before: missingFeats.length > 0 ? `Missing ${missingFeats.length} Lead Features` : 'Manual Intake',
+      after: '24/7 AI Lead Qualifier',
     },
   ]
 
@@ -214,8 +219,6 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
           <PDFGenerator auditData={auditData} targetRefId="report-print-target" />
         </div>
       </div>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-10" id="report-print-target">
         {/* HERO BANNER */}
@@ -233,7 +236,7 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
             </p>
           </div>
 
-          {/* 🟢 Website Health Indicator */}
+          {/* Website Health Indicator */}
           <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3 bg-white/5 px-5 py-3 rounded-2xl border border-white/10">
               <span className={`w-3 h-3 rounded-full ${healthBadge.bg}`} />
@@ -248,7 +251,7 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        {/* 📊 SCORES GRID */}
+        {/* SCORES GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="glass-card p-5 rounded-2xl border border-white/10 text-center">
             <div className="text-xs text-slate-400 font-bold uppercase mb-1">Performance</div>
@@ -268,7 +271,7 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        {/* 💰 SECTION 1: REVENUE OPPORTUNITY */}
+        {/* SECTION 1: REVENUE OPPORTUNITY */}
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-emerald-400" /> Estimated Revenue Opportunity
@@ -294,138 +297,110 @@ export default function AuditReportPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        {/* 🔥 SECTION 2: BIGGEST PROBLEMS */}
+        {/* SECTION 2: BIGGEST PROBLEMS */}
         <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
           <div>
             <h2 className="text-2xl font-black text-white flex items-center gap-2">
-              <XCircle className="w-6 h-6 text-red-400" /> Key Growth Bottlenecks Identified
+              <XCircle className="w-6 h-6 text-red-400" /> Key Optimization Bottlenecks
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Direct technical &amp; conversion bottlenecks identified for {url}.</p>
+            <p className="text-slate-400 text-xs mt-1">Issues identified during automated crawl of {url}</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {problemsToDisplay.map((prob: any, idx: number) => (
               <div key={idx} className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-start gap-3">
                 <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                <div className="flex-1 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">{prob.text}</span>
-                  <span className="text-[10px] font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 shrink-0 ml-2">
-                    {prob.impact}
-                  </span>
+                <div className="space-y-1">
+                  <div className="text-sm font-bold text-red-200">{prob.text}</div>
+                  <div className="text-xs text-red-400/80 font-medium">Impact: {prob.impact}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 🤖 SECTION 3: AI REVENUE PROJECTION & RECOMMENDATIONS */}
-        <div className="glass-card p-8 rounded-3xl border border-violet-500/20 bg-violet-950/20 space-y-6">
-          <div className="flex items-center gap-3">
-            <Sparkles className="w-6 h-6 text-violet-400" />
-            <div>
-              <h2 className="text-xl font-bold text-white">AI-Powered Action Plan for {url}</h2>
-              <p className="text-xs text-slate-400">{auditData?.aiSummary?.executiveTakeaway || 'Prioritized roadmap generated by AI reasoning engine.'}</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {aiRecommendations.map((rec: any, idx: number) => (
-              <div key={idx} className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 flex items-center justify-center text-xs">{idx + 1}</span>
-                    {rec.title}
-                  </h3>
-                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30">
-                    {rec.impact || 'High'} Impact
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 pl-8">{rec.description}</p>
-                {rec.estimatedRoi && (
-                  <div className="pl-8 text-[11px] font-mono text-emerald-400">
-                    Expected ROI: {rec.estimatedRoi}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ⚡ SECTION 4: BEFORE / AFTER TRANSFORMATION GRID */}
+        {/* SECTION 3: BEFORE vs AFTER TRANSFORMATION */}
         <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-emerald-400" /> Measured Current State vs. Future Transformation
+          <h2 className="text-2xl font-black text-white flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-emerald-400" /> Projected Transformation
           </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 text-slate-400 font-bold uppercase">
-                  <th className="py-3 px-4">Website Component</th>
-                  <th className="py-3 px-4 text-red-400">Current Measured State</th>
-                  <th className="py-3 px-4 text-emerald-400">Future Redesigned State</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {dynamicBeforeAfter.map((row) => (
-                  <tr key={row.feature} className="hover:bg-white/[0.02]">
-                    <td className="py-3.5 px-4 font-semibold text-white">{row.feature}</td>
-                    <td className="py-3.5 px-4 text-red-300">{row.before}</td>
-                    <td className="py-3.5 px-4 text-emerald-300 font-bold">{row.after}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* 🎨 SECTION 5: AI WEBSITE SIMULATOR */}
-        <AIWebsiteSimulator url={url} category={auditData?.business?.detectedCategory} />
-
-        {/* 💰 SECTION 6: TAILORED QUOTATION */}
-        <div className="glass-card p-8 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-slate-950 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
-            <div>
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Tailored Solution Package</span>
-              <h2 className="text-2xl font-black text-white mt-1">Recommended Growth Package for {url}</h2>
-            </div>
-            <div className="text-right">
-              {quote.subtotal > quote.totalAmount && (
-                <div className="text-xs text-slate-400 line-through">${quote.subtotal.toLocaleString()} regular subtotal</div>
-              )}
-              <div className="text-3xl font-black text-emerald-400">
-                ${quote.totalAmount.toLocaleString()}{' '}
-                {quote.bundleDiscountPercent > 0 && (
-                  <span className="text-xs text-slate-400 font-normal">({quote.bundleDiscountPercent}% Bundle Discount)</span>
-                )}
-              </div>
-            </div>
-          </div>
-
           <div className="space-y-3">
-            {quote.recommendedServices.map((srv: any, idx: number) => (
-              <div key={idx} className="flex justify-between items-center text-xs py-2 border-b border-white/5">
-                <div>
-                  <span className="font-semibold text-white">{srv.title}</span>
-                  {srv.reason && <p className="text-[11px] text-slate-400 mt-0.5">{srv.reason}</p>}
-                </div>
-                <span className="font-mono text-slate-300 font-bold ml-4">${srv.price.toLocaleString()}</span>
+            {dynamicBeforeAfter.map((item, idx) => (
+              <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] text-xs">
+                <div className="font-bold text-white flex items-center">{item.feature}</div>
+                <div className="text-red-300 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">{item.before}</div>
+                <div className="text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg font-semibold">{item.after}</div>
               </div>
             ))}
           </div>
+        </div>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs text-slate-400">
-              ⚡ 7-10 Day Turnaround | Dedicated Project Manager | 30-Day Warranty
+        {/* SECTION 4: AI RECOMMENDATIONS */}
+        <div className="glass-card p-8 rounded-3xl border border-violet-500/30 bg-gradient-to-br from-violet-950/20 to-slate-900 space-y-6">
+          <h2 className="text-2xl font-black text-white flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-violet-400" /> Actionable AI Recommendations
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {aiRecommendations.map((rec: any, idx: number) => (
+              <div key={idx} className="p-6 rounded-2xl border border-white/10 bg-white/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                    {rec.impact.toUpperCase()} PRIORITY
+                  </span>
+                  <span className="text-xs text-emerald-400 font-bold">{rec.estimatedRoi}</span>
+                </div>
+                <h3 className="text-base font-bold text-white">{rec.title}</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">{rec.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* TAILORED AGENCY BUNDLE CTA */}
+        <div className="glass-card p-8 md:p-10 rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-slate-900 to-violet-950/30 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-3 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+              <Zap className="w-3.5 h-3.5" /> Recommended Package for {url}
+            </div>
+            <h3 className="text-2xl md:text-3xl font-black text-white">Full Growth &amp; Performance Overhaul</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Includes Core Web Vitals optimization, SEO fixes, HSTS security headers, and 24/7 AI lead qualifier widget with 30-day warranty.
+            </p>
+          </div>
+          <div className="text-center md:text-right shrink-0 space-y-4">
+            <div>
+              <div className="text-xs text-slate-400 line-through">${quote.subtotal} USD</div>
+              <div className="text-3xl md:text-4xl font-black text-emerald-400">${quote.totalAmount} USD</div>
+              <div className="text-[10px] text-emerald-300 font-semibold">{quote.bundleDiscountPercent}% Bundle Savings Applied</div>
             </div>
             <button
               onClick={addTailoredPackageToCart}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all"
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-violet-600 text-white font-bold text-sm shadow-xl hover:opacity-90 transition-all flex items-center gap-2 mx-auto md:ml-auto"
             >
-              Book Tailored Package (${quote.totalAmount.toLocaleString()}) <ArrowRight className="w-4 h-4" />
+              <span>Add Package to Cart</span> <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AuditReportPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const resolvedParams = (typeof (params as any)?.then === 'function' ? use(params as Promise<{ id: string }>) : params) as { id: string }
+  const auditId = resolvedParams.id
+
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#08080f] text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-white/40 text-sm">Loading custom website report...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuditReportContent auditId={auditId} />
+    </Suspense>
   )
 }
