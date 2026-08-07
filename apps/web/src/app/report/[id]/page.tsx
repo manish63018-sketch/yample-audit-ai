@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { PDFGenerator } from '@/components/report/PDFGenerator'
@@ -385,9 +385,8 @@ function AuditReportContent({ auditId }: { auditId: string }) {
   )
 }
 
-export default function AuditReportPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-  const resolvedParams = (typeof (params as any)?.then === 'function' ? use(params as Promise<{ id: string }>) : params) as { id: string }
-  const auditId = resolvedParams.id
+export default function AuditReportPage({ params }: { params: { id: string } }) {
+  const auditId = params?.id || ''
 
   return (
     <Suspense

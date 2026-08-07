@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -109,9 +109,8 @@ function AuditDetailContent({ auditId }: { auditId: string }) {
   )
 }
 
-export default function AuditDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-  const resolvedParams = (typeof (params as any)?.then === 'function' ? use(params as Promise<{ id: string }>) : params) as { id: string }
-  const auditId = resolvedParams.id
+export default function AuditDetailPage({ params }: { params: { id: string } }) {
+  const auditId = params?.id || ''
 
   return (
     <Suspense fallback={<div className="p-8 text-white/50 text-sm">Loading audit details...</div>}>
