@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, ShieldCheck, Sparkles, Globe, ArrowRight, Zap, Building2, Gift, Lock } from 'lucide-react'
+import { Check, ShieldCheck, Sparkles, Globe, ArrowRight, Zap, Building2, Gift, Lock, Star } from 'lucide-react'
 import { useGeo } from '@/context/GeoContext'
 
 type RegionTab = 'india' | 'international'
