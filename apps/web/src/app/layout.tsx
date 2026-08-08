@@ -6,6 +6,7 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { CartProvider } from '@/context/CartContext';
 import { GeoProvider } from '@/context/GeoContext';
 import { DeveloperDiagnosticsPanel } from '@/components/DeveloperDiagnosticsPanel';
+import { CookieConsentBanner } from '@/components/layout/CookieConsentBanner';
 import { SITE_CONFIG } from '@/lib/config';
 
 /**
@@ -146,6 +147,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <GeoProvider>
             <CartProvider>
               <main id="main-content">{children}</main>
+              <CookieConsentBanner />
               <DeveloperDiagnosticsPanel />
             </CartProvider>
           </GeoProvider>
