@@ -1,132 +1,182 @@
-'use client'
+'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react'
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import type { CartItemInput, CalculatedOrderSummary } from '@/lib/pricing';
+import { calculateOrderSummary, getBundleDiscountPercentage } from '@/lib/pricing';
 
-export interface CartItem {
-  id: string
-  name: string
-  price: number
-  timeline: string
-  benefits: string[]
-  category: string
-}
+export { getBundleDiscountPercentage };
 
-export function getBundleDiscountPercentage(itemCount: number): number {
-  if (itemCount >= 7) return 20
-  if (itemCount >= 5) return 15
-  if (itemCount >= 3) return 10
-  if (itemCount >= 2) return 5
-  return 0
+export interface ExtendedCartItem extends CartItemInput {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  timeline: string;
+  benefits: string[];
+  category: string;
+  description?: string;
 }
 
 interface CartContextType {
-  items: CartItem[]
-  addItem: (item: CartItem) => void
-  removeItem: (id: string) => void
-  clearCart: () => void
-  total: number // subtotal
-  discount: number // promo/international timer discount
-  setDiscount: (amount: number) => void
-  discountLabel: string
-  setDiscountLabel: (label: string) => void
-  itemCount: number
-  bundleDiscountPct: number
-  bundleDiscountAmount: number
-  totalSavings: number
-  finalTotal: number
+  items: ExtendedCartItem[];
+  addItem: (item: Partial<ExtendedCartItem> & { id: string; name: string; price: number }) => void;
+  updateQuantity: (id: string, quantity: number) => void;
+  removeItem: (id: string) => void;
+  clearCart: () => void;
+  discount: number;
+  setDiscount: (amount: number) => void;
+  discountLabel: string;
+  setDiscountLabel: (label: string) => void;
+  itemCount: number;
+  totalQuantity: number;
+  summary: CalculatedOrderSummary;
+  toastMessage: string | null;
+  clearToast: () => void;
 }
 
-const CartContext = createContext<CartContextType | null>(null)
+const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([])
-  const [discount, setDiscount] = useState(0)
-  const [discountLabel, setDiscountLabel] = useState('')
+  const [items, setItems] = useState<ExtendedCartItem[]>([]);
+  const [discount, setDiscount] = useState(0);
+  const [discountLabel, setDiscountLabel] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // 1. Initial hydration from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('auditai_cart')
-      if (saved) setItems(JSON.parse(saved))
-      const savedDiscount = localStorage.getItem('auditai_discount')
-      if (savedDiscount) setDiscount(Number(savedDiscount))
-      const savedLabel = localStorage.getItem('auditai_discount_label')
-      if (savedLabel) setDiscountLabel(savedLabel)
+      const savedCart = localStorage.getItem('auditai_cart');
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) {
+          setItems(parsed.map((i) => ({ ...i, quantity: i.quantity || 1 })));
+        }
+      }
+      const savedDiscount = localStorage.getItem('auditai_discount');
+      if (savedDiscount) setDiscount(Number(savedDiscount));
+      const savedLabel = localStorage.getItem('auditai_discount_label');
+      if (savedLabel) setDiscountLabel(savedLabel);
     } catch {}
-  }, [])
+  }, []);
 
+  // 2. Persist to localStorage on update
   useEffect(() => {
     try {
-      localStorage.setItem('auditai_cart', JSON.stringify(items))
+      localStorage.setItem('auditai_cart', JSON.stringify(items));
     } catch {}
-  }, [items])
+  }, [items]);
 
-  const addItem = (item: CartItem) => {
-    setItems(prev => {
-      if (prev.find(i => i.id === item.id)) return prev
-      return [...prev, item]
-    })
-  }
+  const clearToast = useCallback(() => setToastMessage(null), []);
 
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(i => i.id !== id))
-  }
+  const addItem = useCallback(
+    (itemInput: Partial<ExtendedCartItem> & { id: string; name: string; price: number }) => {
+      setItems((prev) => {
+        const existingIndex = prev.findIndex((i) => i.id === itemInput.id);
+        if (existingIndex > -1) {
+          // If already in cart, increment quantity
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            quantity: (updated[existingIndex].quantity || 1) + 1,
+          };
+          setToastMessage(`Updated quantity for "${itemInput.name}" in your cart!`);
+          return updated;
+        }
 
-  const clearCart = () => {
-    setItems([])
-    setDiscount(0)
-    setDiscountLabel('')
-    localStorage.removeItem('auditai_cart')
-    localStorage.removeItem('auditai_discount')
-    localStorage.removeItem('auditai_discount_label')
-  }
+        const newItem: ExtendedCartItem = {
+          id: itemInput.id,
+          name: itemInput.name,
+          price: itemInput.price,
+          quantity: itemInput.quantity || 1,
+          timeline: itemInput.timeline || '7 Days',
+          benefits: itemInput.benefits || ['Standard Performance & Security Suite'],
+          category: itemInput.category || 'Website Services',
+          description: itemInput.description || '',
+        };
+        setToastMessage(`Added "${itemInput.name}" to your cart!`);
+        return [...prev, newItem];
+      });
+    },
+    []
+  );
 
-  const handleSetDiscount = (amount: number) => {
-    setDiscount(amount)
-    localStorage.setItem('auditai_discount', String(amount))
-  }
+  const removeItem = useCallback((id: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    setToastMessage('Item removed from cart.');
+  }, []);
 
-  const handleSetDiscountLabel = (label: string) => {
-    setDiscountLabel(label)
-    localStorage.setItem('auditai_discount_label', label)
-  }
+  const updateQuantity = useCallback(
+    (id: string, quantity: number) => {
+      if (quantity <= 0) {
+        removeItem(id);
+        return;
+      }
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity } : i)));
+    },
+    [removeItem]
+  );
 
-  const total = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items])
+  const clearCart = useCallback(() => {
+    setItems([]);
+    setDiscount(0);
+    setDiscountLabel('');
+    try {
+      localStorage.removeItem('auditai_cart');
+      localStorage.removeItem('auditai_discount');
+      localStorage.removeItem('auditai_discount_label');
+    } catch {}
+  }, []);
 
-  const bundleDiscountPct = useMemo(() => getBundleDiscountPercentage(items.length), [items.length])
+  const handleSetDiscount = useCallback((amount: number) => {
+    setDiscount(amount);
+    try {
+      localStorage.setItem('auditai_discount', String(amount));
+    } catch {}
+  }, []);
 
-  const bundleDiscountAmount = useMemo(() => {
-    if (bundleDiscountPct === 0) return 0
-    return Math.round((total * bundleDiscountPct) / 100 * 100) / 100
-  }, [total, bundleDiscountPct])
+  const handleSetDiscountLabel = useCallback((label: string) => {
+    setDiscountLabel(label);
+    try {
+      localStorage.setItem('auditai_discount_label', label);
+    } catch {}
+  }, []);
 
-  const totalSavings = useMemo(() => bundleDiscountAmount + discount, [bundleDiscountAmount, discount])
+  const summary = useMemo(() => {
+    return calculateOrderSummary(items, 'USD', discount, false);
+  }, [items, discount]);
 
-  const finalTotal = useMemo(() => Math.max(0, total - totalSavings), [total, totalSavings])
+  const totalQuantity = useMemo(
+    () => items.reduce((acc, i) => acc + (i.quantity || 1), 0),
+    [items]
+  );
 
   return (
-    <CartContext.Provider value={{
-      items,
-      addItem,
-      removeItem,
-      clearCart,
-      total,
-      discount,
-      setDiscount: handleSetDiscount,
-      discountLabel,
-      setDiscountLabel: handleSetDiscountLabel,
-      itemCount: items.length,
-      bundleDiscountPct,
-      bundleDiscountAmount,
-      totalSavings,
-      finalTotal,
-    }}>
+    <CartContext.Provider
+      value={{
+        items,
+        addItem,
+        updateQuantity,
+        removeItem,
+        clearCart,
+        discount,
+        setDiscount: handleSetDiscount,
+        discountLabel,
+        setDiscountLabel: handleSetDiscountLabel,
+        itemCount: items.length,
+        totalQuantity,
+        summary,
+        toastMessage,
+        clearToast,
+      }}
+    >
       {children}
     </CartContext.Provider>
-  )
+  );
 }
 
 export function useCart() {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used within CartProvider')
-  return ctx
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error('useCart must be used within CartProvider');
+  return ctx;
 }

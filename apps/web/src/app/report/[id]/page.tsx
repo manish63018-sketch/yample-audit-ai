@@ -22,6 +22,7 @@ function AuditReportContent({ auditId }: { auditId: string }) {
 
   const [auditData, setAuditData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [addedToCart, setAddedToCart] = useState(false);
   const { addItem, items } = useCart();
 
   useEffect(() => {
@@ -231,12 +232,14 @@ function AuditReportContent({ auditId }: { auditId: string }) {
   const addTailoredPackageToCart = () => {
     addItem({
       id: `tailored-package-${auditId}`,
-      name: `Tailored Growth Bundle for ${url}`,
+      name: `Tailored Growth Bundle for ${url || 'Your Website'}`,
       price: quote.totalAmount || 1258,
       timeline: '7-10 Days',
       benefits: quote.recommendedServices.map((s: any) => s.title),
       category: 'Tailored Agency Bundle',
+      description: `Includes Core Web Vitals acceleration, SEO hardening, Security Headers, and 24/7 AI Lead Qualifier Assistant for ${url}.`,
     });
+    setAddedToCart(true);
   };
 
   return (
@@ -461,12 +464,21 @@ function AuditReportContent({ auditId }: { auditId: string }) {
                 {quote.bundleDiscountPercent}% Bundle Savings Applied
               </div>
             </div>
-            <button
-              onClick={addTailoredPackageToCart}
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-violet-600 text-white font-bold text-sm shadow-xl hover:opacity-90 transition-all flex items-center gap-2 mx-auto md:ml-auto"
-            >
-              <span>Add Package to Cart</span> <ArrowRight className="w-4 h-4" />
-            </button>
+            {addedToCart ? (
+              <Link
+                href="/cart"
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-sm shadow-xl hover:opacity-90 transition-all flex items-center gap-2 mx-auto md:ml-auto"
+              >
+                <span>✓ Added to Cart! View Cart</span> <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <button
+                onClick={addTailoredPackageToCart}
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-violet-600 text-white font-bold text-sm shadow-xl hover:opacity-90 transition-all flex items-center gap-2 mx-auto md:ml-auto"
+              >
+                <span>Add Package to Cart</span> <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
