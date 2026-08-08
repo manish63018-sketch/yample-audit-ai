@@ -148,25 +148,42 @@ export function Navbar() {
               </Link>
             </div>
 
-            {/* Mobile menu toggle */}
-            <button
-              className={cn(
-                'lg:hidden flex items-center justify-center',
-                'h-10 w-10 rounded-xl',
-                'border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10',
-                'transition-colors duration-150'
-              )}
-              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-nav"
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-5 w-5" aria-hidden="true" />
-              ) : (
-                <Menu className="h-5 w-5" aria-hidden="true" />
-              )}
-            </button>
+            {/* Mobile Actions & Menu Toggle */}
+            <div className="flex items-center gap-2 lg:hidden">
+              {/* Mobile Cart Button */}
+              <Link
+                href="/cart"
+                className="relative p-2 rounded-xl border border-white/10 bg-white/5 text-slate-200 flex items-center justify-center h-10 w-10"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingCart className="h-4 w-4 text-violet-400" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 text-white text-[10px] font-bold flex items-center justify-center shadow-md shadow-purple-500/30">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                className={cn(
+                  'flex items-center justify-center',
+                  'h-10 w-10 rounded-xl',
+                  'border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10',
+                  'transition-colors duration-150'
+                )}
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-nav"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </nav>
         </div>
       </header>
