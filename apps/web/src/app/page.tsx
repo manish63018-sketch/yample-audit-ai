@@ -9,6 +9,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { useCart } from '@/context/CartContext';
 import { AIAssistantBot } from '@/components/journey/AIAssistantBot';
 import { ComparePlansTable } from '@/components/pricing/ComparePlansTable';
+import { Pricing as PricingSection } from '@/components/landing/pricing';
 import { WhatsIncludedSection } from '@/components/sections/WhatsIncludedSection';
 import {
   ArrowRight,
@@ -684,69 +685,10 @@ export default function LandingPage() {
         <WhatsIncludedSection />
 
         {/* ═══════════════════════════════════════════════════════
-            5. TRANSPARENT PRICING
+            5. TRANSPARENT PRICING PLANS (INDIA & INTERNATIONAL)
         ═══════════════════════════════════════════════════════ */}
-        <section id="pricing" className="py-24 border-t border-white/5">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16 space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 text-xs font-semibold">
-                Transparent Pricing
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-                Fixed Investment Plans
-              </h2>
-              <p className="text-slate-400">
-                Start with a free audit. Choose a package when ready. No hidden fees.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {PRICING.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`glass-card p-8 relative flex flex-col justify-between ${
-                    plan.highlight
-                      ? 'border-purple-500/60 bg-gradient-to-b from-purple-900/20 to-slate-900 shadow-2xl glow-purple'
-                      : ''
-                  }`}
-                >
-                  {plan.badge && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold shadow-lg">
-                      {plan.badge}
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="text-sm font-bold text-slate-300 mb-1">{plan.name}</div>
-                    <div className="text-4xl font-extrabold text-white mb-2">{plan.price}</div>
-                    <div className="text-xs text-slate-400 mb-6">{plan.sub}</div>
-
-                    <div className="space-y-3 mb-8">
-                      {plan.features.map((f) => (
-                        <div key={f} className="flex items-start gap-2.5 text-xs text-slate-300">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                          <span>{f}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Link
-                    href={plan.href}
-                    className={`w-full py-3.5 rounded-xl font-bold text-xs text-center transition-all ${
-                      plan.highlight ? 'btn-gradient-primary shadow-lg' : 'btn-glass-secondary'
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
-                </div>
-              ))}
-            </div>
-
-            {/* Plan Comparison Table */}
-            <ComparePlansTable />
-          </div>
-        </section>
+        <PricingSection />
+        <ComparePlansTable />
 
         {/* ═══════════════════════════════════════════════════════
             6. FAQ SECTION
