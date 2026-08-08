@@ -1,19 +1,16 @@
-import { NextResponse } from 'next/server';
-import { createAdminSupabaseClient } from '@auditai/db';
-import type { SupportedCurrency } from '@/lib/pricing';
-import { calculateOrderSummary } from '@/lib/pricing';
-import { sendWhatsAppEnquiry } from '@/lib/whatsapp';
+import { NextResponse } from 'next/server'
+import { createAdminSupabaseClient } from '@auditai/db'
+import { calculateOrderSummary, SupportedCurrency, formatCurrencyPrice } from '@/lib/pricing'
+import { sendWhatsAppEnquiry } from '@/lib/whatsapp'
 
 function generateId(prefix: string) {
-  const now = new Date();
-  const yyyymm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const rand = String(Math.floor(Math.random() * 9000) + 1000);
-  return `${prefix}-${yyyymm}-${rand}`;
+  const rand = String(Math.floor(Math.random() * 90000000) + 10000000)
+  return `YPL-${prefix}-${rand}`
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json()
     const {
       name,
       email,
@@ -33,97 +30,125 @@ export async function POST(request: Request) {
       paymentMethod = 'proposal',
       paymentStatus = 'Unpaid',
       orderStatus = 'Quote Requested',
-    } = body;
+    } = body
 
     if (!name || !email) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Full Name and Email Address are required to generate order records.',
-        },
+        { success: false, error: 'Full Name and Email Address are required to generate order records.' },
         { status: 400 }
-      );
+      )
     }
 
-    const customerId = generateId('CUST');
-    const quoteId = generateId('QT');
-    const orderId = generateId('ORD');
+    const cleanEmail = email.toLowerCase().trim()
+    const adminClient = createAdminSupabaseClient()
 
-    const isIndia = country === 'India' || country === 'IN' || currency === 'INR';
-    const activeCurrency: SupportedCurrency =
-      (currency as SupportedCurrency) || (isIndia ? 'INR' : 'USD');
-
-    // Calculate authoritative totals
-    const calcSummary = calculateOrderSummary(items || [], activeCurrency, discount, isIndia);
-
-    const adminClient = createAdminSupabaseClient();
-
-    // 1. Save / Upsert Customer Profile in Supabase
-    let savedCustomerId = customerId;
+    // 1. Check or Reuse Existing Customer Account ID
+    let customerId = generateId('CUST')
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: customer } = await (adminClient.from as any)('customers')
-        .upsert(
-          {
-            email: email.toLowerCase().trim(),
-            name,
-            phone: phone || null,
-            country: country || null,
-            address: address || null,
-            company_name: business || null,
-            website_url: websiteUrl || null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'email' }
-        )
+      const { data: existingCustomer } = await (adminClient.from as any)('customers')
         .select('id')
-        .single();
+        .eq('email', cleanEmail)
+        .single()
 
-      if (customer?.id) savedCustomerId = customer.id;
-    } catch (e) {
-      console.warn('[Checkout DB] Customer upsert warning:', e);
+      if (existingCustomer?.id) {
+        customerId = existingCustomer.id
+      }
+    } catch {
+      // New customer ID used
     }
 
-    // 2. Persist Quote Record in Supabase
+    const quoteId = generateId('QT')
+    const orderId = generateId('ORD')
+
+    const isIndia = country === 'India' || country === 'IN' || currency === 'INR'
+    const activeCurrency: SupportedCurrency = (currency as SupportedCurrency) || (isIndia ? 'INR' : 'USD')
+
+    // Calculate authoritative pricing summary
+    const calcSummary = calculateOrderSummary(items || [], activeCurrency, discount, isIndia)
+
+    // Extract reward item if present
+    const rewardItem = (items || []).find((i: any) => i.isReward)
+    const rewardId = rewardItem?.rewardId || rewardItem?.id || null
+
+    // 2. Save / Upsert Customer Profile in Supabase
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (adminClient.from as any)('customers').upsert(
+        {
+          id: customerId,
+          email: cleanEmail,
+          name,
+          phone: phone || null,
+          country: country || null,
+          address: address || null,
+          company_name: business || null,
+          website_url: websiteUrl || null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'email' }
+      )
+    } catch (e) {
+      console.warn('[Checkout Submit] Customer upsert warning:', e)
+    }
+
+    // 3. Update Reward Status in Supabase
+    if (rewardId) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (adminClient.from as any)('rewards')
+          .update({
+            customer_id: customerId,
+            status: 'Applied to Order',
+          })
+          .eq('id', rewardId)
+      } catch (e) {
+        console.warn('[Checkout Submit] Reward status update warning:', e)
+      }
+    }
+
+    // 4. Persist Quote Record in Supabase
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (adminClient.from as any)('quotes').insert({
         quote_id: quoteId,
-        customer_id: savedCustomerId,
-        customer_email: email,
+        customer_id: customerId,
+        customer_email: cleanEmail,
         customer_name: name,
         business_name: business || null,
         website_url: websiteUrl || null,
+        reward_id: rewardId,
         additional_notes: requirements || voiceNotes || null,
         required_features: (items || []).map((i: any) => i.name),
         budget_amount: calcSummary.finalTotalUSD,
         budget_currency: activeCurrency,
         status: 'submitted',
         created_at: new Date().toISOString(),
-      });
+      })
     } catch (e) {
-      console.warn('[Checkout DB] Quote insert warning:', e);
+      console.warn('[Checkout Submit] Quote insert warning:', e)
     }
 
-    // 3. Persist Order Record in Supabase
+    // 5. Persist Order Record in Supabase
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (adminClient.from as any)('orders').insert({
         order_number: orderId,
         quote_id: quoteId,
-        customer_id: savedCustomerId,
-        customer_email: email,
+        customer_id: customerId,
+        customer_email: cleanEmail,
         customer_name: name,
         customer_phone: phone || null,
         country: country || null,
         address: address || null,
         business_name: business || null,
         website_url: websiteUrl || null,
+        reward_id: rewardId,
         requirements: requirements || null,
         voice_notes: voiceNotes || null,
         reference_links: referenceLinks || null,
         subtotal_usd: calcSummary.subtotalUSD,
-        discount_usd: calcSummary.totalSavingsUSD || calcSummary.bundleDiscountUSD + discount,
+        discount_usd: calcSummary.totalSavingsUSD,
         tax_usd: calcSummary.processingFeeUSD,
         total_usd: calcSummary.finalTotalUSD,
         currency: activeCurrency,
@@ -133,51 +158,62 @@ export async function POST(request: Request) {
         line_items: items || [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      })
     } catch (e) {
-      console.warn('[Checkout DB] Order insert warning:', e);
+      console.warn('[Checkout Submit] Order insert warning:', e)
     }
 
-    // 4. Server-Side WhatsApp Dispatch or Fallback
+    // 6. Formulate & Dispatch WhatsApp Client Enquiry
+    const rewardName = rewardItem ? rewardItem.name : 'N/A'
+    const rewardOriginalVal = rewardItem ? formatCurrencyPrice(rewardItem.originalPrice || 199, activeCurrency) : 'N/A'
+
     const whatsappResult = await sendWhatsAppEnquiry({
       customerName: name,
-      customerEmail: email,
+      customerEmail: cleanEmail,
       customerPhone: phone,
       country: country || 'United States',
       businessName: business,
       websiteUrl,
       orderId,
       quoteId,
-      customerId: savedCustomerId,
-      selectedServices: (items || []).map(
-        (i: any) => `${i.name} (${calcSummary.currencySymbol}${i.price})`
+      customerId,
+      rewardName: rewardItem ? `${rewardItem.name} (${rewardId || 'YPL-RWD'})` : undefined,
+      rewardId: rewardId || undefined,
+      rewardOriginalValue: rewardOriginalVal,
+      rewardDiscount: rewardItem ? '100%' : undefined,
+      selectedServices: (items || []).map((i: any) =>
+        i.isReward
+          ? `- 🎁 ${i.name} (Original: ${rewardOriginalVal} → 100% FREE)`
+          : `- ${i.name} (${calcSummary.currencySymbol}${i.price})`
       ),
       requirements: requirements || voiceNotes || 'Standard Implementation',
       budget: budget || calcSummary.finalTotalFormatted,
       currency: activeCurrency,
       subtotal: calcSummary.subtotalFormatted,
-      discount: calcSummary.bundleDiscountFormatted,
+      discount: calcSummary.totalSavingsFormatted,
       finalTotal: calcSummary.finalTotalFormatted,
       timeline: timeline || '7-10 Business Days',
       paymentStatus: paymentStatus || 'Unpaid',
       createdAt: new Date().toISOString(),
-    });
+    })
 
-    // 5. Trigger Confirmation Email
-    let emailSent = false;
+    // 7. Trigger Email Notification
+    let emailSent = false
     try {
       const emailRes = await fetch(new URL('/api/emails/send', request.url).toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          recipientEmail: email,
+          recipientEmail: cleanEmail,
           recipientName: name,
           template: 'proposal_confirmation',
           subject: `Yample Labs Order Confirmation: ${orderId} (Quote ${quoteId})`,
           data: {
             quoteId,
             orderId,
-            customerId: savedCustomerId,
+            customerId,
+            rewardId,
+            rewardName: rewardItem ? rewardItem.name : null,
             totalAmount: calcSummary.finalTotalFormatted,
             currency: activeCurrency,
             items: items || [],
@@ -185,21 +221,23 @@ export async function POST(request: Request) {
             trackingUrl: `/orders/${orderId}`,
           },
         }),
-      });
-      emailSent = emailRes.ok;
+      })
+      emailSent = emailRes.ok
     } catch (e) {
-      console.warn('[Checkout Email] Notification dispatch note:', e);
-      emailSent = false;
+      console.warn('[Checkout Email] Notification dispatch note:', e)
+      emailSent = false
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        customerId: savedCustomerId,
+        customerId,
         quoteId,
         orderId,
+        rewardId,
+        rewardItem: rewardItem || null,
         customerName: name,
-        customerEmail: email,
+        customerEmail: cleanEmail,
         customerPhone: phone,
         summary: calcSummary,
         emailSent,
@@ -211,9 +249,9 @@ export async function POST(request: Request) {
         paymentStatus,
         createdAt: new Date().toISOString(),
       },
-    });
+    })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Submission error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Submission error'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

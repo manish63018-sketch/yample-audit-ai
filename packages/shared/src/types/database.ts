@@ -533,6 +533,51 @@ export interface Database {
         }
         Relationships: []
       }
+      rewards: {
+        Row: {
+          id: string
+          customer_id: string | null
+          session_id: string | null
+          reward_type: string
+          reward_name: string
+          discount_amount: number
+          original_value: number
+          final_value: number
+          spin_timestamp: string
+          expiry_timestamp: string
+          status: 'Available' | 'Added to Cart' | 'Applied to Order' | 'Expired' | 'Cancelled'
+          created_at: string
+        }
+        Insert: {
+          id: string
+          customer_id?: string | null
+          session_id?: string | null
+          reward_type: string
+          reward_name: string
+          discount_amount: number
+          original_value: number
+          final_value: number
+          spin_timestamp?: string
+          expiry_timestamp: string
+          status?: 'Available' | 'Added to Cart' | 'Applied to Order' | 'Expired' | 'Cancelled'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string | null
+          session_id?: string | null
+          reward_type?: string
+          reward_name?: string
+          discount_amount?: number
+          original_value?: number
+          final_value?: number
+          spin_timestamp?: string
+          expiry_timestamp?: string
+          status?: 'Available' | 'Added to Cart' | 'Applied to Order' | 'Expired' | 'Cancelled'
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

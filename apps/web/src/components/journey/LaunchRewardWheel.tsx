@@ -1,42 +1,103 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useCart } from '@/context/CartContext'
+import { useGeo } from '@/context/GeoContext'
+import { formatCurrencyPrice } from '@/lib/pricing'
+import { ShieldCheck, Tag, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
 
 const PRIZES = [
-  { label: '5% Off', value: 0.05, color: '#6366f1', emoji: '🎁' },
-  { label: '10% Off', value: 0.10, color: '#8b5cf6', emoji: '🔥' },
-  { label: 'Free SEO Report', value: 0, color: '#a855f7', emoji: '🔍', bonus: 'Free SEO Report' },
-  { label: '7% Off', value: 0.07, color: '#ec4899', emoji: '💜' },
-  { label: 'Free Logo', value: 0, color: '#3b82f6', emoji: '🎨', bonus: 'Free Logo Design' },
-  { label: '15% Off', value: 0.15, color: '#10b981', emoji: '🚀' },
-  { label: '3% Off', value: 0.03, color: '#f59e0b', emoji: '✨' },
-  { label: '12% Off', value: 0.12, color: '#ef4444', emoji: '🎯' },
+  { label: 'Free Logo', value: 0, color: '#3b82f6', emoji: '🎨', name: 'Free Professional Logo Design', origUSD: 199 },
+  { label: '15% Off', value: 0.15, color: '#10b981', emoji: '🚀', name: '15% OFF Launch Special', origUSD: 189 },
+  { label: 'Free SEO Schema', value: 0, color: '#a855f7', emoji: '🔍', name: 'Free SEO Schema Hardening', origUSD: 149 },
+  { label: '10% Off', value: 0.10, color: '#ec4899', emoji: '🔥', name: '10% OFF Growth Overhaul', origUSD: 125 },
 ]
 
 const SEGMENT_ANGLE = 360 / PRIZES.length
 
 interface Props {
   onClose: () => void
-  onReward: (amount: number, label: string) => void
-  cartTotal: number
+  onRewardApplied?: (reward: any) => void
 }
 
-export function LaunchRewardWheel({ onClose, onReward, cartTotal }: Props) {
+export function LaunchRewardWheel({ onClose, onRewardApplied }: Props) {
+  const { addItem, items } = useCart()
+  const { activeCurrency } = useGeo()
+
   const [spinning, setSpinning] = useState(false)
   const [rotation, setRotation] = useState(0)
-  const [result, setResult] = useState<typeof PRIZES[0] | null>(null)
+  const [rewardData, setRewardData] = useState<any>(null)
+  const [alreadySpun, setAlreadySpun] = useState(false)
+  const [loadingStatus, setLoadingStatus] = useState(true)
   const [timeLeft, setTimeLeft] = useState(0)
-  const [applied, setApplied] = useState(false)
+  const [claimed, setClaimed] = useState(false)
+  const [error, setError] = useState('')
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // 1. Check server-side single spin status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        let sessionId = ''
+        if (typeof window !== 'undefined') {
+          sessionId = localStorage.getItem('auditai_session_id') || ''
+          if (!sessionId) {
+            sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            localStorage.setItem('auditai_session_id', sessionId)
+          }
+        }
+
+        const res = await fetch(`/api/rewards/status?sessionId=${sessionId}`)
+        const data = await res.json()
+
+        if (data.hasSpun && data.reward) {
+          setAlreadySpun(true)
+          setRewardData(data.reward)
+          if (data.reward.status === 'Added to Cart' || data.reward.status === 'Applied to Order') {
+            setClaimed(true)
+          }
+
+          // Compute remaining seconds from server expiry timestamp
+          const expTime = new Date(data.reward.expiry_timestamp).getTime()
+          const remaining = Math.max(0, Math.floor((expTime - Date.now()) / 1000))
+          setTimeLeft(remaining)
+
+          if (remaining > 0 && !data.isExpired) {
+            startCountdownTimer(expTime)
+          }
+        }
+      } catch {
+        // Continue cleanly
+      } finally {
+        setLoadingStatus(false)
+      }
+    }
+
+    checkStatus()
+  }, [])
 
   useEffect(() => {
     drawWheel(rotation)
   }, [rotation])
 
   useEffect(() => {
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
   }, [])
+
+  const startCountdownTimer = (targetTimestampMs: number) => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((targetTimestampMs - Date.now()) / 1000))
+      setTimeLeft(remaining)
+      if (remaining <= 0 && timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    }, 1000)
+  }
 
   const drawWheel = (rot: number) => {
     const canvas = canvasRef.current
@@ -87,60 +148,109 @@ export function LaunchRewardWheel({ onClose, onReward, cartTotal }: Props) {
     ctx.fillText('🎰', cx, cy + 5)
   }
 
-  const spin = () => {
-    if (spinning || result) return
+  const spin = async () => {
+    if (spinning || rewardData || alreadySpun) return
     setSpinning(true)
+    setError('')
 
-    const winIndex = Math.floor(Math.random() * PRIZES.length)
-    const extra = 5 + Math.random() * 5  // 5-10 full spins
-    const targetRotation = rotation + extra * 360 + (PRIZES.length - winIndex) * SEGMENT_ANGLE
-
-    let current = rotation
-    const target = targetRotation
-    const duration = 3000
-    const start = performance.now()
-
-    const animate = (now: number) => {
-      const elapsed = now - start
-      const t = Math.min(elapsed / duration, 1)
-      const ease = 1 - Math.pow(1 - t, 4)
-      const curr = rotation + (target - rotation) * ease
-      setRotation(curr)
-      drawWheel(curr)
-      if (t < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        setSpinning(false)
-        setResult(PRIZES[winIndex])
-        startTimer()
+    try {
+      let sessionId = localStorage.getItem('auditai_session_id') || ''
+      if (!sessionId) {
+        sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+        localStorage.setItem('auditai_session_id', sessionId)
       }
-    }
-    requestAnimationFrame(animate)
-  }
 
-  const startTimer = () => {
-    setTimeLeft(900) // 15 minutes
-    timerRef.current = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timerRef.current!); return 0 }
-        return t - 1
+      const res = await fetch('/api/rewards/spin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
       })
-    }, 1000)
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.message || 'You have already used your promotional spin.')
+        setAlreadySpun(true)
+        setSpinning(false)
+        return
+      }
+
+      const serverReward = data.data
+      setRewardData(serverReward)
+      setAlreadySpun(true)
+
+      // Find matching wheel target index
+      let targetIndex = PRIZES.findIndex(p => p.name === serverReward.reward_name)
+      if (targetIndex < 0) targetIndex = 0
+
+      const extraSpins = 6
+      const targetRotation = rotation + extraSpins * 360 + (PRIZES.length - targetIndex) * SEGMENT_ANGLE
+
+      const duration = 3000
+      const start = performance.now()
+      const initialRot = rotation
+
+      const animate = (now: number) => {
+        const elapsed = now - start
+        const t = Math.min(elapsed / duration, 1)
+        const ease = 1 - Math.pow(1 - t, 4)
+        const curr = initialRot + (targetRotation - initialRot) * ease
+        setRotation(curr)
+        drawWheel(curr)
+
+        if (t < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          setSpinning(false)
+          const expTime = new Date(serverReward.expiry_timestamp).getTime()
+          const remaining = Math.max(0, Math.floor((expTime - Date.now()) / 1000))
+          setTimeLeft(remaining)
+          startCountdownTimer(expTime)
+        }
+      }
+
+      requestAnimationFrame(animate)
+    } catch {
+      setError('Connection error during spin. Please try again.')
+      setSpinning(false)
+    }
   }
 
-  const applyReward = () => {
-    if (!result) return
-    const discountAmount = result.value > 0 ? Math.round(cartTotal * result.value) : 0
-    const label = result.bonus ?? result.label
-    onReward(discountAmount, label)
-    setApplied(true)
-    if (timerRef.current) clearInterval(timerRef.current)
+  // 2. Claim Reward & Create Real Cart Item
+  const claimRewardAndAddToCart = () => {
+    if (!rewardData) return
+
+    const origUSD = rewardData.original_value || 199
+    const rewardItemName = rewardData.reward_name || 'Free Professional Logo Design'
+
+    addItem({
+      id: rewardData.id,
+      name: rewardItemName,
+      price: 0, // Customer price 100% Free
+      originalPrice: origUSD,
+      quantity: 1,
+      timeline: 'Included',
+      benefits: ['100% Promotional Discount', `Original Value: ${formatCurrencyPrice(origUSD, activeCurrency.code)}`],
+      category: 'Promotional Reward',
+      description: `Official Promotional Reward (${rewardData.id}). Original Value: ${formatCurrencyPrice(origUSD, activeCurrency.code)} (100% Discount).`,
+      isReward: true,
+      rewardId: rewardData.id,
+    })
+
+    setClaimed(true)
+
+    if (onRewardApplied) {
+      onRewardApplied(rewardData)
+    }
+
+    setTimeout(() => {
+      onClose()
+    }, 1000)
   }
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={!result ? onClose : undefined}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={!rewardData ? onClose : undefined}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
       <div
         className="relative w-full max-w-sm rounded-3xl border border-white/10 bg-[#0d0d14] p-6 shadow-2xl text-center"
@@ -149,60 +259,97 @@ export function LaunchRewardWheel({ onClose, onReward, cartTotal }: Props) {
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors">✕</button>
 
-        {!result ? (
+        {loadingStatus ? (
+          <div className="py-12 text-center text-xs text-slate-400">Verifying promotional spin status...</div>
+        ) : alreadySpun && (!rewardData || claimed) ? (
+          <div className="py-6 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-xl">
+              ⚠️
+            </div>
+            <h3 className="text-lg font-bold text-white">Promotional Spin Used</h3>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+              You have already used your promotional spin for this session. Your claimed reward item is saved in your order details.
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-xs shadow-lg"
+            >
+              Continue to Order →
+            </button>
+          </div>
+        ) : !rewardData ? (
           <>
-            <div className="text-2xl font-bold text-white mb-1">🎰 Launch Reward</div>
-            <p className="text-white/40 text-sm mb-5">Spin the wheel for an exclusive discount!</p>
+            <div className="text-xl font-extrabold text-white mb-1 flex items-center justify-center gap-1.5">
+              <span>🎰 Launch Reward Wheel</span>
+            </div>
+            <p className="text-xs text-slate-400 mb-4">Spin to win a free branding package or bundle discount!</p>
+
             <div className="relative flex justify-center mb-4">
-              {/* Pointer */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10 text-xl">▼</div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10 text-violet-400 text-sm font-bold">▼</div>
               <canvas ref={canvasRef} width={220} height={220} className="rounded-full" />
             </div>
+
+            {error && <p className="text-red-400 text-xs font-semibold mb-3">{error}</p>}
+
             <button
               onClick={spin}
               disabled={spinning}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-base hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-500/20"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-extrabold text-xs hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-500/25"
             >
-              {spinning ? '🌀 Spinning...' : '🎯 SPIN NOW!'}
+              {spinning ? '🌀 Spinning Wheel...' : '🎯 SPIN NOW!'}
             </button>
           </>
-        ) : applied ? (
-          <>
-            <div className="text-3xl mb-3">✅</div>
-            <h3 className="text-xl font-bold text-white mb-2">Reward Applied!</h3>
-            <p className="text-white/50 text-sm mb-4">{result.label} has been added to your cart.</p>
-            <button onClick={onClose} className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold hover:opacity-90 transition-opacity">
-              Continue →
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="text-4xl mb-2">{result.emoji}</div>
-            <h3 className="text-2xl font-bold text-white mb-1">You Won!</h3>
-            <div className="text-3xl font-bold mb-3" style={{ color: result.color }}>{result.label}</div>
-            {result.value > 0 && (
-              <div className="text-sm text-white/40 mb-4">
-                That's ${Math.round(cartTotal * result.value)} off your order
-              </div>
-            )}
-            {timeLeft > 0 && (
-              <div className="mb-5 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                <div className="text-xs text-yellow-400 mb-1">⏱️ Offer expires in</div>
-                <div className="text-2xl font-bold text-yellow-300 font-mono">{formatTime(timeLeft)}</div>
-              </div>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={applyReward}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-violet-500/20"
-              >
-                Apply Discount ✓
-              </button>
-              <button onClick={onClose} className="px-4 py-3 rounded-xl border border-white/10 text-white/40 hover:text-white/60 transition-colors text-sm">
-                Skip
-              </button>
+        ) : claimed ? (
+          <div className="py-6 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-xl">
+              ✓
             </div>
-          </>
+            <h3 className="text-lg font-bold text-white">Reward Claimed!</h3>
+            <p className="text-xs text-emerald-300 font-semibold">{rewardData.reward_name} added to your cart!</p>
+            <button onClick={onClose} className="w-full py-3 rounded-xl bg-violet-600 text-white font-bold text-xs">
+              View Cart &amp; Continue →
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="text-3xl">🎉</div>
+            <div>
+              <div className="text-xs text-violet-400 font-bold uppercase tracking-wider">Congratulations! You Won</div>
+              <h3 className="text-xl font-black text-white mt-1">{rewardData.reward_name}</h3>
+              <div className="text-xs text-slate-400 mt-1">
+                Original Value:{' '}
+                <span className="line-through text-slate-500">
+                  {formatCurrencyPrice(rewardData.original_value || 199, activeCurrency.code)}
+                </span>{' '}
+                → <strong className="text-emerald-400 font-mono">100% FREE ($0 / ₹0)</strong>
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                Reward ID: <span className="text-violet-300">{rewardData.id}</span>
+              </div>
+            </div>
+
+            {timeLeft > 0 ? (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 text-amber-300 font-semibold">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span>Offer Expires In:</span>
+                </div>
+                <div className="font-mono font-black text-amber-300 text-sm">{formatTime(timeLeft)}</div>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-semibold">
+                ⚠️ Promotional offer countdown expired.
+              </div>
+            )}
+
+            <button
+              onClick={claimRewardAndAddToCart}
+              disabled={timeLeft <= 0}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-xs shadow-xl shadow-emerald-500/20 hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Claim Reward &amp; Add to Cart
+            </button>
+          </div>
         )}
       </div>
     </div>

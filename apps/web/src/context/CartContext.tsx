@@ -11,11 +11,14 @@ export interface ExtendedCartItem extends CartItemInput {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
   quantity: number;
   timeline: string;
   benefits: string[];
   category: string;
   description?: string;
+  isReward?: boolean;
+  rewardId?: string;
 }
 
 interface CartContextType {
@@ -88,11 +91,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           id: itemInput.id,
           name: itemInput.name,
           price: itemInput.price,
+          originalPrice: itemInput.originalPrice || itemInput.price,
           quantity: itemInput.quantity || 1,
           timeline: itemInput.timeline || '7 Days',
           benefits: itemInput.benefits || ['Standard Performance & Security Suite'],
           category: itemInput.category || 'Website Services',
           description: itemInput.description || '',
+          isReward: itemInput.isReward || false,
+          rewardId: itemInput.rewardId || undefined,
         };
         setToastMessage(`Added "${itemInput.name}" to your cart!`);
         return [...prev, newItem];

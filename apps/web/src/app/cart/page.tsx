@@ -118,45 +118,76 @@ export default function CartPage() {
                 </button>
               </div>
 
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4 transition-all hover:border-violet-500/30"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/20">
-                          {item.category || 'Service'}
-                        </span>
-                        {item.timeline && (
-                          <span className="text-[10px] text-slate-400">Est. {item.timeline}</span>
+              {items.map((item) => {
+                const isReward = item.isReward;
+                const originalVal = item.originalPrice || item.price;
+                const convertedOriginal = (originalVal * (activeCurrency.code === 'INR' ? 84 : 1)).toLocaleString();
+                const convertedFinal = (item.price * (item.quantity || 1) * (activeCurrency.code === 'INR' ? 84 : 1)).toLocaleString();
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`rounded-2xl border p-5 space-y-4 transition-all ${
+                      isReward
+                        ? 'border-emerald-500/40 bg-gradient-to-r from-emerald-950/20 via-slate-900 to-slate-900 shadow-lg shadow-emerald-500/10'
+                        : 'border-white/10 bg-white/5 hover:border-violet-500/30'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${
+                              isReward
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                : 'bg-violet-500/10 text-violet-300 border-violet-500/20'
+                            }`}
+                          >
+                            {isReward ? '🎁 Promotional Reward' : item.category || 'Service'}
+                          </span>
+                          {item.rewardId && (
+                            <span className="text-[10px] text-violet-300 font-mono">
+                              ID: {item.rewardId}
+                            </span>
+                          )}
+                          {item.timeline && !isReward && (
+                            <span className="text-[10px] text-slate-400">Est. {item.timeline}</span>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-white text-base">{item.name}</h3>
+                        {item.description && (
+                          <p className="text-xs text-slate-400 line-clamp-2">{item.description}</p>
                         )}
                       </div>
-                      <h3 className="font-bold text-white text-base">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-xs text-slate-400 line-clamp-2">{item.description}</p>
-                      )}
-                    </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="text-lg font-black text-violet-300 font-mono">
-                        {summary.currencySymbol}
-                        {(
-                          item.price *
-                          (item.quantity || 1) *
-                          (activeCurrency.code === 'INR' ? 84 : 1)
-                        ).toLocaleString()}
-                      </div>
-                      <div className="text-[10px] text-slate-400">
-                        {summary.currencySymbol}
-                        {(
-                          item.price * (activeCurrency.code === 'INR' ? 84 : 1)
-                        ).toLocaleString()}{' '}
-                        each
+                      <div className="text-right shrink-0">
+                        {isReward ? (
+                          <>
+                            <div className="text-xs text-slate-400 line-through">
+                              {summary.currencySymbol}
+                              {convertedOriginal}
+                            </div>
+                            <div className="text-lg font-black text-emerald-400 font-mono">
+                              100% FREE ({summary.currencySymbol}0)
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-lg font-black text-violet-300 font-mono">
+                              {summary.currencySymbol}
+                              {convertedFinal}
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                              {summary.currencySymbol}
+                              {(
+                                item.price * (activeCurrency.code === 'INR' ? 84 : 1)
+                              ).toLocaleString()}{' '}
+                              each
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                  </div>
 
                   {/* Benefit Pills */}
                   {item.benefits && item.benefits.length > 0 && (
@@ -227,7 +258,7 @@ export default function CartPage() {
                     </div>
                   )}
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>
@@ -249,6 +280,15 @@ export default function CartPage() {
                 </span>
                 <span className="font-mono font-medium">{summary.subtotalFormatted}</span>
               </div>
+
+              {summary.rewardSavingsUSD > 0 && (
+                <div className="flex justify-between text-emerald-400 font-bold">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5" /> Spin Reward Savings (100% FREE)
+                  </span>
+                  <span className="font-mono">-{summary.rewardSavingsFormatted}</span>
+                </div>
+              )}
 
               {summary.bundleDiscountPct > 0 && (
                 <div className="flex justify-between text-emerald-400 font-semibold">
