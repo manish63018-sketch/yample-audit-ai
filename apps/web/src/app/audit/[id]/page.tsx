@@ -1,50 +1,57 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef, Suspense, use } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useState, useEffect, useRef, Suspense, use } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 /* ── Loading steps ────────────────────────────────────────────────── */
 const STEPS = [
-  { id: 'validate',     label: 'Validating Website',           icon: '1', color: '#6366f1' },
-  { id: 'availability', label: 'Checking Availability',         icon: '2', color: '#8b5cf6' },
-  { id: 'screenshot',   label: 'Capturing Screenshot',          icon: '3', color: '#a855f7' },
-  { id: 'performance',  label: 'Running Performance Analysis',  icon: '4', color: '#10b981' },
-  { id: 'seo',          label: 'Running SEO Analysis',          icon: '5', color: '#6366f1' },
-  { id: 'accessibility',label: 'Running Accessibility Checks',  icon: '6', color: '#3b82f6' },
-  { id: 'security',     label: 'Running Security Checks',       icon: '7', color: '#f59e0b' },
-  { id: 'ai',           label: 'AI Business Analysis',          icon: '8', color: '#ec4899' },
-  { id: 'report',       label: 'Generating Report',             icon: '9', color: '#14b8a6' },
-  { id: 'dashboard',    label: 'Preparing Dashboard',           icon: '10', color: '#f97316' },
-]
+  { id: 'validate', label: 'Validating Website', icon: '1', color: '#6366f1' },
+  { id: 'availability', label: 'Checking Availability', icon: '2', color: '#8b5cf6' },
+  { id: 'screenshot', label: 'Capturing Screenshot', icon: '3', color: '#a855f7' },
+  { id: 'performance', label: 'Running Performance Analysis', icon: '4', color: '#10b981' },
+  { id: 'seo', label: 'Running SEO Analysis', icon: '5', color: '#6366f1' },
+  { id: 'accessibility', label: 'Running Accessibility Checks', icon: '6', color: '#3b82f6' },
+  { id: 'security', label: 'Running Security Checks', icon: '7', color: '#f59e0b' },
+  { id: 'ai', label: 'AI Business Analysis', icon: '8', color: '#ec4899' },
+  { id: 'report', label: 'Generating Report', icon: '9', color: '#14b8a6' },
+  { id: 'dashboard', label: 'Preparing Dashboard', icon: '10', color: '#f97316' },
+];
 
-const POLL_INTERVAL_MS = 2000
+const POLL_INTERVAL_MS = 2000;
 
 interface AuditLoadingProps {
-  auditId: string
-  url: string
-  businessCategory: string
-  country: string
-  businessGoal: string
+  auditId: string;
+  url: string;
+  businessCategory: string;
+  country: string;
+  businessGoal: string;
 }
 
-function AuditLoadingContent({ auditId, url, businessCategory, country, businessGoal }: AuditLoadingProps) {
-  const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(0)
-  const [progress, setProgress] = useState(5)
-  const [statusLabel, setStatusLabel] = useState('Starting audit...')
-  const [auditStatus, setAuditStatus] = useState<'queued' | 'running' | 'completed' | 'failed'>('queued')
-  const [error, setError] = useState('')
-  const [retryCount, setRetryCount] = useState(0)
-  const processStarted = useRef(false)
-  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null)
+function AuditLoadingContent({
+  auditId,
+  url,
+  businessCategory,
+  country,
+  businessGoal,
+}: AuditLoadingProps) {
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [progress, setProgress] = useState(5);
+  const [statusLabel, setStatusLabel] = useState('Starting audit...');
+  const [auditStatus, setAuditStatus] = useState<'queued' | 'running' | 'completed' | 'failed'>(
+    'queued'
+  );
+  const [error, setError] = useState('');
+  const processStarted = useRef(false);
+  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const displayUrl = (url || 'website.com').replace(/^https?:\/\//, '')
+  const displayUrl = (url || 'website.com').replace(/^https?:\/\//, '');
 
   /* ── Start the audit process once ──────────────────────────────── */
   useEffect(() => {
-    if (!auditId || processStarted.current) return
-    processStarted.current = true
+    if (!auditId || processStarted.current) return;
+    processStarted.current = true;
 
     const runAudit = async () => {
       try {
@@ -52,125 +59,128 @@ function AuditLoadingContent({ auditId, url, businessCategory, country, business
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url, businessCategory, country, businessGoal }),
-        })
-        const data = await res.json()
+        });
+        const data = await res.json();
 
         if (data.success && data.data) {
           // Store full result in sessionStorage for instant report rendering
           if (typeof window !== 'undefined') {
-            sessionStorage.setItem(`audit_data_${auditId}`, JSON.stringify(data.data))
+            sessionStorage.setItem(`audit_data_${auditId}`, JSON.stringify(data.data));
           }
-          setProgress(100)
-          setCurrentStep(9)
-          setStatusLabel('Preparing Dashboard')
-          setAuditStatus('completed')
+          setProgress(100);
+          setCurrentStep(9);
+          setStatusLabel('Preparing Dashboard');
+          setAuditStatus('completed');
 
           // Small delay for the "completed" animation to show
           setTimeout(() => {
-            router.push(`/report/${auditId}`)
-          }, 1200)
+            router.push(`/report/${auditId}`);
+          }, 1200);
         } else {
-          setError(data.error?.message || 'Audit failed. Please try again.')
-          setAuditStatus('failed')
+          setError(data.error?.message || 'Audit failed. Please try again.');
+          setAuditStatus('failed');
         }
       } catch (err) {
-        console.error('Audit process error:', err)
-        setError('Connection error during audit. Please check your network and retry.')
-        setAuditStatus('failed')
+        console.error('Audit process error:', err);
+        setError('Connection error during audit. Please check your network and retry.');
+        setAuditStatus('failed');
       }
-    }
+    };
 
-    runAudit()
-  }, [auditId, url, businessCategory, country, businessGoal, router])
+    runAudit();
+  }, [auditId, url, businessCategory, country, businessGoal, router]);
 
   /* ── Animate progress independently of DB polling ──────────────── */
   useEffect(() => {
-    if (auditStatus === 'completed' || auditStatus === 'failed') return
+    if (auditStatus === 'completed' || auditStatus === 'failed') return;
 
     // Smoothly advance progress bar
     const progTimer = setInterval(() => {
-      setProgress(p => {
-        if (p >= 92) return 92 // Cap at 92 until real completion
-        return p + (p < 30 ? 3 : p < 60 ? 1.5 : p < 80 ? 0.8 : 0.3)
-      })
-    }, 200)
+      setProgress((p) => {
+        if (p >= 92) return 92; // Cap at 92 until real completion
+        return p + (p < 30 ? 3 : p < 60 ? 1.5 : p < 80 ? 0.8 : 0.3);
+      });
+    }, 200);
 
     // Cycle through step labels to show activity
     const stepTimer = setInterval(() => {
-      setCurrentStep(s => {
-        const next = s + 1
-        if (next >= STEPS.length - 1) return s
-        return next
-      })
-    }, 4500)
+      setCurrentStep((s) => {
+        const next = s + 1;
+        if (next >= STEPS.length - 1) return s;
+        return next;
+      });
+    }, 4500);
 
     return () => {
-      clearInterval(progTimer)
-      clearInterval(stepTimer)
-    }
-  }, [auditStatus])
+      clearInterval(progTimer);
+      clearInterval(stepTimer);
+    };
+  }, [auditStatus]);
 
   /* ── Poll DB status every 2s ────────────────────────────────────── */
   useEffect(() => {
     if (!auditId || auditStatus === 'completed' || auditStatus === 'failed') {
-      if (pollTimer.current) clearInterval(pollTimer.current)
-      return
+      if (pollTimer.current) clearInterval(pollTimer.current);
+      return;
     }
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/audits/${auditId}/status`)
-        const data = await res.json()
-        if (!data.success) return
+        const res = await fetch(`/api/audits/${auditId}/status`);
+        const data = await res.json();
+        if (!data.success) return;
 
-        const { status, progress: dbProgress, step, label } = data.data
+        const { status, progress: dbProgress, step, label } = data.data;
 
         if (typeof step === 'number' && step >= 0) {
-          setCurrentStep(s => Math.max(s, step))
+          setCurrentStep((s) => Math.max(s, step));
         }
         if (typeof dbProgress === 'number') {
-          setProgress(p => Math.max(p, dbProgress))
+          setProgress((p) => Math.max(p, dbProgress));
         }
-        if (label) setStatusLabel(label)
+        if (label) setStatusLabel(label);
 
         if (status === 'completed') {
-          setAuditStatus('completed')
-          setProgress(100)
-          setCurrentStep(9)
+          setAuditStatus('completed');
+          setProgress(100);
+          setCurrentStep(9);
           setTimeout(() => {
-            router.push(`/report/${auditId}`)
-          }, 1000)
+            router.push(`/report/${auditId}`);
+          }, 1000);
         } else if (status === 'failed') {
-          setAuditStatus('failed')
-          setError('Audit encountered an error. Please retry.')
+          setAuditStatus('failed');
+          setError('Audit encountered an error. Please retry.');
         }
       } catch {
         // Silently ignore poll errors
       }
-    }
+    };
 
-    poll()
-    pollTimer.current = setInterval(poll, POLL_INTERVAL_MS)
+    poll();
+    pollTimer.current = setInterval(poll, POLL_INTERVAL_MS);
 
     return () => {
-      if (pollTimer.current) clearInterval(pollTimer.current)
-    }
-  }, [auditId, auditStatus, router])
+      if (pollTimer.current) clearInterval(pollTimer.current);
+    };
+  }, [auditId, auditStatus, router]);
 
   const handleRetry = () => {
-    setError('')
-    setAuditStatus('queued')
-    setProgress(5)
-    setCurrentStep(0)
-    setRetryCount(r => r + 1)
-    processStarted.current = false
-  }
+    setError('');
+    setAuditStatus('queued');
+    setProgress(5);
+    setCurrentStep(0);
+    setRetryCount((r) => r + 1);
+    processStarted.current = false;
+  };
 
   return (
     <div className="min-h-screen bg-[#08080f] text-white flex flex-col">
       {/* Header */}
       <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+        >
           <span>🔍</span>
           <span className="font-semibold text-sm">AuditAI</span>
           <span className="text-[10px] text-violet-400 font-normal">by Yample Labs</span>
@@ -222,12 +232,8 @@ function AuditLoadingContent({ auditId, url, businessCategory, country, business
                   <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
                   AI-Powered Enterprise Audit Running
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-2">
-                  Analyzing Your Website
-                </h1>
-                <p className="text-white/40 text-sm font-mono">
-                  {displayUrl}
-                </p>
+                <h1 className="text-2xl font-bold text-white mb-2">Analyzing Your Website</h1>
+                <p className="text-white/40 text-sm font-mono">{displayUrl}</p>
                 <p className="text-white/30 text-xs mt-1">
                   {businessCategory} · {businessGoal}
                 </p>
@@ -236,9 +242,9 @@ function AuditLoadingContent({ auditId, url, businessCategory, country, business
               {/* Steps List */}
               <div className="space-y-2 mb-8">
                 {STEPS.map((step, idx) => {
-                  const isDone = idx < currentStep
-                  const isActive = idx === currentStep
-                  const isPending = idx > currentStep
+                  const isDone = idx < currentStep;
+                  const isActive = idx === currentStep;
+                  const isPending = idx > currentStep;
 
                   return (
                     <div
@@ -282,11 +288,7 @@ function AuditLoadingContent({ auditId, url, businessCategory, country, business
                       {/* Label */}
                       <span
                         className={`text-sm font-medium transition-colors duration-300 ${
-                          isDone
-                            ? 'text-white/50'
-                            : isActive
-                            ? 'text-white'
-                            : 'text-white/25'
+                          isDone ? 'text-white/50' : isActive ? 'text-white' : 'text-white/25'
                         }`}
                       >
                         {step.label}
@@ -299,11 +301,9 @@ function AuditLoadingContent({ auditId, url, businessCategory, country, business
                           style={{ background: step.color }}
                         />
                       )}
-                      {isDone && (
-                        <span className="ml-auto text-emerald-400/60 text-xs">done</span>
-                      )}
+                      {isDone && <span className="ml-auto text-emerald-400/60 text-xs">done</span>}
                     </div>
-                  )
+                  );
                 })}
               </div>
 
@@ -338,69 +338,95 @@ function AuditLoadingContent({ auditId, url, businessCategory, country, business
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /* ── Page — unwraps params Promise for Next.js 15 ──── */
-export default function AuditIdPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-  const resolvedParams = (typeof (params as any)?.then === 'function' ? use(params as Promise<{ id: string }>) : params) as { id: string }
-  const auditId = resolvedParams.id
+export default function AuditIdPage({
+  params,
+}: {
+  params: Promise<{ id: string }> | { id: string };
+}) {
+  const resolvedParams = (
+    typeof (params as any)?.then === 'function' ? use(params as Promise<{ id: string }>) : params
+  ) as { id: string };
+  const auditId = resolvedParams.id;
 
   const [meta, setMeta] = useState<{
-    url: string
-    businessCategory: string
-    country: string
-    businessGoal: string
-  } | null>(null)
-  const [loading, setLoading] = useState(true)
+    url: string;
+    businessCategory: string;
+    country: string;
+    businessGoal: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const searchUrl = searchParams ? searchParams.get('url') || '' : '';
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !auditId) return
+    if (typeof window === 'undefined' || !auditId) return;
 
     const loadMeta = async () => {
-      // 1. Check localStorage
-      const stored = localStorage.getItem(`audit_meta_${auditId}`)
+      // 1. Check query parameter URL first
+      if (searchUrl) {
+        setMeta({
+          url: searchUrl,
+          businessCategory: 'General Business',
+          country: 'US',
+          businessGoal: 'More Leads',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Check localStorage
+      const stored = localStorage.getItem(`audit_meta_${auditId}`);
       if (stored) {
         try {
-          const parsed = JSON.parse(stored)
+          const parsed = JSON.parse(stored);
           if (parsed.url) {
-            setMeta(parsed)
-            setLoading(false)
-            return
+            setMeta(parsed);
+            setLoading(false);
+            return;
           }
         } catch {}
       }
 
-      // 2. Fallback: fetch status or full report from API
+      // 3. Fallback: fetch status or full report from API
       try {
-        const res = await fetch(`/api/audits/${auditId}`)
-        const data = await res.json()
+        const res = await fetch(`/api/audits/${auditId}`);
+        const data = await res.json();
         if (data.success && data.data) {
           setMeta({
-            url: data.data.url || 'website.com',
+            url: data.data.url || 'yampleauditai.vercel.app',
             businessCategory: data.data.business?.detectedCategory || 'General Business',
             country: 'US',
             businessGoal: 'More Leads',
-          })
-          setLoading(false)
-          return
+          });
+          setLoading(false);
+          return;
         }
       } catch {}
 
       // Fallback
-      setMeta({ url: 'website.com', businessCategory: 'General Business', country: 'US', businessGoal: 'More Leads' })
-      setLoading(false)
-    }
+      setMeta({
+        url: 'yampleauditai.vercel.app',
+        businessCategory: 'General Business',
+        country: 'US',
+        businessGoal: 'More Leads',
+      });
+      setLoading(false);
+    };
 
-    loadMeta()
-  }, [auditId])
+    loadMeta();
+  }, [auditId, searchUrl]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#08080f] text-white flex items-center justify-center">
         <div className="text-white/40 text-sm">Starting audit engine...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -419,5 +445,5 @@ export default function AuditIdPage({ params }: { params: Promise<{ id: string }
         businessGoal={meta?.businessGoal || 'More Leads'}
       />
     </Suspense>
-  )
+  );
 }
