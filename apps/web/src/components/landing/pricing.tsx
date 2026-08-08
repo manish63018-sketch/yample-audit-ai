@@ -2,15 +2,61 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Check, ShieldCheck, Sparkles, Globe, ArrowRight, Zap, Building2, Gift, Lock, Star } from 'lucide-react'
+import { Check, ShieldCheck, Sparkles, Globe, ArrowRight, ShoppingCart, CreditCard, Gift, Lock, Star } from 'lucide-react'
 import { useGeo } from '@/context/GeoContext'
+import { useCart } from '@/context/CartContext'
 
 type RegionTab = 'india' | 'international'
 
 export function Pricing() {
   const { geo } = useGeo()
+  const { addItem } = useCart()
+  const router = useRouter()
   const [activeRegion, setActiveRegion] = useState<RegionTab>(geo.isIndia ? 'india' : 'international')
+
+  const handleBuyNow = (plan: {
+    id: string
+    name: string
+    priceUSD: number
+    timeline: string
+    category: string
+    description: string
+    features: string[]
+  }) => {
+    addItem({
+      id: plan.id,
+      name: plan.name,
+      price: plan.priceUSD,
+      timeline: plan.timeline,
+      category: plan.category,
+      description: plan.description,
+      benefits: plan.features.slice(0, 4),
+    })
+    router.push('/checkout')
+  }
+
+  const handleAddToCart = (plan: {
+    id: string
+    name: string
+    priceUSD: number
+    timeline: string
+    category: string
+    description: string
+    features: string[]
+  }) => {
+    addItem({
+      id: plan.id,
+      name: plan.name,
+      price: plan.priceUSD,
+      timeline: plan.timeline,
+      category: plan.category,
+      description: plan.description,
+      benefits: plan.features.slice(0, 4),
+    })
+    router.push('/cart')
+  }
 
   return (
     <section id="pricing" className="py-24 border-t border-white/5 bg-[#050816] relative overflow-hidden">
@@ -107,12 +153,40 @@ export function Pricing() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout?plan=starter_inr"
-                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs text-center transition-all"
-              >
-                Select Starter Plan →
-              </Link>
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <button
+                  onClick={() =>
+                    handleBuyNow({
+                      id: 'starter_inr',
+                      name: 'Starter Business Website',
+                      priceUSD: 179,
+                      timeline: '7 Days',
+                      category: 'Business Website',
+                      description: 'Up to 4 pages custom website, responsive design, 1-yr domain & email.',
+                      features: ['Up to 4 Pages', 'Mobile + Desktop Responsive', 'WhatsApp & Maps', '1-Yr Domain & Email'],
+                    })
+                  }
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black text-xs text-center shadow-lg shadow-violet-500/20 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <CreditCard className="w-3.5 h-3.5" /> Buy Now (₹15,000)
+                </button>
+                <button
+                  onClick={() =>
+                    handleAddToCart({
+                      id: 'starter_inr',
+                      name: 'Starter Business Website',
+                      priceUSD: 179,
+                      timeline: '7 Days',
+                      category: 'Business Website',
+                      description: 'Up to 4 pages custom website, responsive design, 1-yr domain & email.',
+                      features: ['Up to 4 Pages', 'Mobile + Desktop Responsive', 'WhatsApp & Maps', '1-Yr Domain & Email'],
+                    })
+                  }
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+                </button>
+              </div>
             </div>
 
             {/* 2. BUSINESS */}
@@ -153,12 +227,40 @@ export function Pricing() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout?plan=business_inr"
-                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs text-center transition-all"
-              >
-                Select Business Plan →
-              </Link>
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <button
+                  onClick={() =>
+                    handleBuyNow({
+                      id: 'business_inr',
+                      name: 'Business Website Package',
+                      priceUSD: 298,
+                      timeline: '10 Days',
+                      category: 'Business Website',
+                      description: 'Up to 7 pages, advanced UI/UX, gallery/portfolio, FAQ, testimonials/reviews.',
+                      features: ['Up to 7 Pages', 'Advanced UI/UX', 'Gallery & Reviews', 'Analytics Setup'],
+                    })
+                  }
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black text-xs text-center shadow-lg shadow-violet-500/20 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <CreditCard className="w-3.5 h-3.5" /> Buy Now (₹25,000)
+                </button>
+                <button
+                  onClick={() =>
+                    handleAddToCart({
+                      id: 'business_inr',
+                      name: 'Business Website Package',
+                      priceUSD: 298,
+                      timeline: '10 Days',
+                      category: 'Business Website',
+                      description: 'Up to 7 pages, advanced UI/UX, gallery/portfolio, FAQ, testimonials/reviews.',
+                      features: ['Up to 7 Pages', 'Advanced UI/UX', 'Gallery & Reviews', 'Analytics Setup'],
+                    })
+                  }
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+                </button>
+              </div>
             </div>
 
             {/* 3. BUSINESS PRO */}
@@ -203,12 +305,40 @@ export function Pricing() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout?plan=business_pro_inr"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-extrabold text-xs text-center shadow-lg shadow-violet-500/25 hover:opacity-90 transition-all"
-              >
-                Select Business Pro →
-              </Link>
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <button
+                  onClick={() =>
+                    handleBuyNow({
+                      id: 'business_pro_inr',
+                      name: 'Business Pro Website Package',
+                      priceUSD: 536,
+                      timeline: '14 Days',
+                      category: 'Business Website',
+                      description: 'Up to 10 pages, booking system, product catalogue, priority support.',
+                      features: ['Up to 10 Pages', 'Booking System', 'Product Catalogue', 'Priority Support'],
+                    })
+                  }
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold text-xs text-center shadow-lg shadow-violet-500/25 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <CreditCard className="w-3.5 h-3.5" /> Buy Now (₹45,000)
+                </button>
+                <button
+                  onClick={() =>
+                    handleAddToCart({
+                      id: 'business_pro_inr',
+                      name: 'Business Pro Website Package',
+                      priceUSD: 536,
+                      timeline: '14 Days',
+                      category: 'Business Website',
+                      description: 'Up to 10 pages, booking system, product catalogue, priority support.',
+                      features: ['Up to 10 Pages', 'Booking System', 'Product Catalogue', 'Priority Support'],
+                    })
+                  }
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-violet-200 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+                </button>
+              </div>
             </div>
 
             {/* 4. BUSINESS GROWTH */}
@@ -248,12 +378,40 @@ export function Pricing() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout?plan=business_growth_inr"
-                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs text-center transition-all"
-              >
-                Request Scope Quote →
-              </Link>
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <button
+                  onClick={() =>
+                    handleBuyNow({
+                      id: 'business_growth_inr',
+                      name: 'Complete Business Website System (Growth)',
+                      priceUSD: 893,
+                      timeline: '21 Days',
+                      category: 'Enterprise System',
+                      description: 'Custom website design & dev, database & admin functionality, full ownership.',
+                      features: ['Custom Website System', 'Database Integration', 'Admin Panel', 'Priority Support'],
+                    })
+                  }
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs text-center shadow-lg transition-all flex items-center justify-center gap-1.5"
+                >
+                  <CreditCard className="w-3.5 h-3.5" /> Buy Now (₹75,000)
+                </button>
+                <button
+                  onClick={() =>
+                    handleAddToCart({
+                      id: 'business_growth_inr',
+                      name: 'Complete Business Website System (Growth)',
+                      priceUSD: 893,
+                      timeline: '21 Days',
+                      category: 'Enterprise System',
+                      description: 'Custom website design & dev, database & admin functionality, full ownership.',
+                      features: ['Custom Website System', 'Database Integration', 'Admin Panel', 'Priority Support'],
+                    })
+                  }
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -288,12 +446,40 @@ export function Pricing() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout?plan=starter_usd"
-                className="w-full py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs text-center transition-all"
-              >
-                Select $499 Plan →
-              </Link>
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <button
+                  onClick={() =>
+                    handleBuyNow({
+                      id: 'starter_usd',
+                      name: 'Starter Managed Business Website',
+                      priceUSD: 499,
+                      timeline: '7 Days',
+                      category: 'Managed Website',
+                      description: 'Custom responsive website, 1-yr domain & email, hosting & cloud deployment.',
+                      features: ['Custom Responsive Website', '1-Yr Domain & Email', 'Hosting Setup', 'Basic SEO & Security'],
+                    })
+                  }
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs text-center shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <CreditCard className="w-3.5 h-3.5" /> Buy Now ($499 USD)
+                </button>
+                <button
+                  onClick={() =>
+                    handleAddToCart({
+                      id: 'starter_usd',
+                      name: 'Starter Managed Business Website',
+                      priceUSD: 499,
+                      timeline: '7 Days',
+                      category: 'Managed Website',
+                      description: 'Custom responsive website, 1-yr domain & email, hosting & cloud deployment.',
+                      features: ['Custom Responsive Website', '1-Yr Domain & Email', 'Hosting Setup', 'Basic SEO & Security'],
+                    })
+                  }
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+                </button>
+              </div>
             </div>
 
             {/* $4,999 MANAGED BUSINESS PLAN (FLAGSHIP) */}
@@ -375,12 +561,40 @@ export function Pricing() {
                 <p className="text-xs text-slate-400">
                   <strong className="text-white">You focus on your business. We handle the technology.</strong>
                 </p>
-                <Link
-                  href="/checkout?plan=managed_4999_usd"
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs text-center shadow-xl shadow-amber-500/25 hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                >
-                  Get 1-Year Managed Partner ($4,999) <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() =>
+                      handleAddToCart({
+                        id: 'managed_4999_usd',
+                        name: '1-Year Managed Business Website Partner',
+                        priceUSD: 4999,
+                        timeline: '1-Year Partner',
+                        category: 'Managed Partner',
+                        description: 'Custom website, 4-Yr domain & email, hosting, 12 months full technical management & 40% off next project.',
+                        features: ['4-Year Domain & Email', '12 Months Technical Management', 'Hosting Included', '40% OFF Next Project'],
+                      })
+                    }
+                    className="px-5 py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center gap-1.5"
+                  >
+                    <ShoppingCart className="w-4 h-4" /> Add to Cart
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleBuyNow({
+                        id: 'managed_4999_usd',
+                        name: '1-Year Managed Business Website Partner',
+                        priceUSD: 4999,
+                        timeline: '1-Year Partner',
+                        category: 'Managed Partner',
+                        description: 'Custom website, 4-Yr domain & email, hosting, 12 months full technical management & 40% off next project.',
+                        features: ['4-Year Domain & Email', '12 Months Technical Management', 'Hosting Included', '40% OFF Next Project'],
+                      })
+                    }
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs text-center shadow-xl shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" /> Buy Now ($4,999) <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
