@@ -1,11 +1,12 @@
-import type { Metadata, Viewport } from 'next'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
-import './globals.css'
-import { AuthProvider } from '@/providers/auth-provider'
-import { CartProvider } from '@/context/CartContext'
-import { GeoProvider } from '@/context/GeoContext'
-import { DeveloperDiagnosticsPanel } from '@/components/DeveloperDiagnosticsPanel'
+import type { Metadata, Viewport } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import './globals.css';
+import { AuthProvider } from '@/providers/auth-provider';
+import { CartProvider } from '@/context/CartContext';
+import { GeoProvider } from '@/context/GeoContext';
+import { DeveloperDiagnosticsPanel } from '@/components/DeveloperDiagnosticsPanel';
+import { SITE_CONFIG } from '@/lib/config';
 
 /**
  * Root layout — wraps every page in the application.
@@ -13,7 +14,7 @@ import { DeveloperDiagnosticsPanel } from '@/components/DeveloperDiagnosticsPane
  */
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://yampleauditai.vercel.app'),
+  metadataBase: new URL(SITE_CONFIG.siteUrl),
   title: {
     default: 'AuditAI — AI Website Audit & Business Platform',
     template: '%s | AuditAI by Yample Labs',
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   creator: 'Yample Labs',
   publisher: 'Yample Labs',
   alternates: {
-    canonical: 'https://yampleauditai.vercel.app',
+    canonical: SITE_CONFIG.siteUrl,
   },
   robots: {
     index: true,
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://yampleauditai.vercel.app',
+    url: SITE_CONFIG.siteUrl,
     siteName: 'AuditAI by Yample Labs',
     title: 'AuditAI — Turn Your Website Into A Revenue Machine',
     description:
@@ -81,17 +82,17 @@ export const metadata: Metadata = {
     shortcut: '/favicon-16x16.png',
     apple: '/apple-touch-icon.png',
   },
-}
+};
 
 export const viewport: Viewport = {
   themeColor: '#050816',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-}
+};
 
 interface RootLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -100,10 +101,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': 'https://yampleauditai.vercel.app/#organization',
+        '@id': `${SITE_CONFIG.siteUrl}/#organization`,
         name: 'Yample Labs',
         url: 'https://yamplelabs.com',
-        logo: 'https://yampleauditai.vercel.app/og-image.png',
+        logo: `${SITE_CONFIG.siteUrl}/og-image.png`,
         sameAs: ['https://twitter.com/yamplabs'],
       },
       {
@@ -118,7 +119,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         },
       },
     ],
-  }
+  };
 
   return (
     <html
@@ -151,5 +152,5 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </AuthProvider>
       </body>
     </html>
-  )
+  );
 }

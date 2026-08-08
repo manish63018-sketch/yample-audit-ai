@@ -1,27 +1,29 @@
-'use client'
+'use client';
 
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 function AuditDetailContent({ auditId }: { auditId: string }) {
-  const searchParams = useSearchParams()
-  const fallbackUrl = searchParams ? searchParams.get('url') || 'https://yampleauditai.vercel.app' : 'https://yampleauditai.vercel.app'
-  const [activeTab, setActiveTab] = useState<'overview' | 'pagespeed' | 'seo' | 'a11y' | 'security' | 'ai' | 'revenue'>('overview')
-  const [auditData, setAuditData] = useState<any>(null)
+  const searchParams = useSearchParams();
+  const fallbackUrl = searchParams ? searchParams.get('url') || '' : '';
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'pagespeed' | 'seo' | 'a11y' | 'security' | 'ai' | 'revenue'
+  >('overview');
+  const [auditData, setAuditData] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem(`audit_data_${auditId}`)
+      const stored = sessionStorage.getItem(`audit_data_${auditId}`);
       if (stored) {
         try {
-          setAuditData(JSON.parse(stored))
+          setAuditData(JSON.parse(stored));
         } catch {}
       }
     }
-  }, [auditId])
+  }, [auditId]);
 
-  const url = auditData?.url || fallbackUrl
+  const url = auditData?.url || fallbackUrl;
   const scores = auditData?.scores || {
     overall: 94,
     technicalHealth: 95,
@@ -33,7 +35,7 @@ function AuditDetailContent({ auditId }: { auditId: string }) {
     ux: 90,
     business: 93,
     mobile: 96,
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -48,7 +50,9 @@ function AuditDetailContent({ auditId }: { auditId: string }) {
             <span className="text-xs text-text-muted">Audit ID: {auditId}</span>
           </div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">{url}</h1>
-          <p className="text-sm text-text-muted mt-1">Audit report generated on {new Date().toLocaleDateString()}</p>
+          <p className="text-sm text-text-muted mt-1">
+            Audit report generated on {new Date().toLocaleDateString()}
+          </p>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -106,15 +110,15 @@ function AuditDetailContent({ auditId }: { auditId: string }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function AuditDetailPage({ params }: { params: { id: string } }) {
-  const auditId = params?.id || ''
+  const auditId = params?.id || '';
 
   return (
     <Suspense fallback={<div className="p-8 text-white/50 text-sm">Loading audit details...</div>}>
       <AuditDetailContent auditId={auditId} />
     </Suspense>
-  )
+  );
 }

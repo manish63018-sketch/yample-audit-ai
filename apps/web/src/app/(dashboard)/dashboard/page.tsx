@@ -1,11 +1,10 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useGeo } from '@/context/GeoContext'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useGeo } from '@/context/GeoContext';
 import {
-  Zap,
   LayoutDashboard,
   FileText,
   ShoppingBag,
@@ -15,33 +14,39 @@ import {
   User,
   LogOut,
   ExternalLink,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
   Inbox,
   CreditCard,
   Download,
   Send,
-} from 'lucide-react'
+} from 'lucide-react';
 
-type TabType = 'audits' | 'quotes' | 'orders' | 'projects' | 'invoices' | 'tickets' | 'profile' | 'messages' | 'payments' | 'downloads'
+type TabType =
+  | 'audits'
+  | 'quotes'
+  | 'orders'
+  | 'projects'
+  | 'invoices'
+  | 'tickets'
+  | 'profile'
+  | 'messages'
+  | 'payments'
+  | 'downloads';
 
 export default function CustomerDashboardPage() {
-  const router = useRouter()
-  const { formatPrice } = useGeo()
-  const [activeTab, setActiveTab] = useState<TabType>('audits')
-  const [user, setUser] = useState<any>(null)
-  const [ticketSuccess, setTicketSuccess] = useState(false)
-  const [profileSaved, setProfileSaved] = useState(false)
-  const [activeQuote, setActiveQuote] = useState<any>(null)
+  const router = useRouter();
+  const { formatPrice } = useGeo();
+  const [activeTab, setActiveTab] = useState<TabType>('audits');
+  const [user, setUser] = useState<any>(null);
+  const [ticketSuccess, setTicketSuccess] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [activeQuote, setActiveQuote] = useState<any>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const storedUser = localStorage.getItem('auditai_user')
+    if (typeof window === 'undefined') return;
+    const storedUser = localStorage.getItem('auditai_user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser))
+        setUser(JSON.parse(storedUser));
       } catch {}
     } else {
       setUser({
@@ -51,23 +56,23 @@ export default function CustomerDashboardPage() {
         country: 'United States',
         companyName: 'Acme Growth Labs',
         websiteUrl: 'acme.com',
-      })
+      });
     }
 
-    const storedQuote = localStorage.getItem('auditai_active_quote')
+    const storedQuote = localStorage.getItem('auditai_active_quote');
     if (storedQuote) {
       try {
-        setActiveQuote(JSON.parse(storedQuote))
+        setActiveQuote(JSON.parse(storedQuote));
       } catch {}
     }
-  }, [])
+  }, []);
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auditai_user')
+      localStorage.removeItem('auditai_user');
     }
-    router.push('/login')
-  }
+    router.push('/login');
+  };
 
   // Demo Project Milestones Data
   const MILESTONES = [
@@ -77,7 +82,7 @@ export default function CustomerDashboardPage() {
     { id: 4, title: 'Next.js 16 Development', done: false, time: 'Pending' },
     { id: 5, title: 'Core Web Vitals & Security QA', done: false, time: 'Pending' },
     { id: 6, title: 'Live Vercel Edge Launch', done: false, time: 'Pending' },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -85,11 +90,20 @@ export default function CustomerDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <h1 className="text-2xl font-black text-white">Customer Portal &amp; Projects</h1>
-          <p className="text-xs text-slate-400">Welcome back, <span className="text-violet-300 font-bold">{user?.fullName || user?.name || 'Customer'}</span>!</p>
+          <p className="text-xs text-slate-400">
+            Welcome back,{' '}
+            <span className="text-violet-300 font-bold">
+              {user?.fullName || user?.name || 'Customer'}
+            </span>
+            !
+          </p>
         </div>
 
         <div className="flex items-center gap-3 text-xs">
-          <Link href="/" className="px-3.5 py-2 rounded-xl bg-violet-600 text-white font-bold hover:opacity-90 transition-all">
+          <Link
+            href="/"
+            className="px-3.5 py-2 rounded-xl bg-violet-600 text-white font-bold hover:opacity-90 transition-all"
+          >
             + Run New Audit
           </Link>
           <button
@@ -115,9 +129,9 @@ export default function CustomerDashboardPage() {
             { id: 'tickets', label: 'Support Tickets', icon: MessageSquare, count: 0 },
             { id: 'messages', label: 'Messages', icon: Inbox, count: 1, badge: 'New' },
             { id: 'profile', label: 'Profile Settings', icon: User },
-          ].map(tab => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
@@ -143,7 +157,7 @@ export default function CustomerDashboardPage() {
                   </span>
                 )}
               </button>
-            )
+            );
           })}
         </div>
 
@@ -155,7 +169,9 @@ export default function CustomerDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-black text-white">My Website Audits</h2>
-                  <p className="text-xs text-slate-400">View and download historical technical website scans.</p>
+                  <p className="text-xs text-slate-400">
+                    View and download historical technical website scans.
+                  </p>
                 </div>
               </div>
 
@@ -168,9 +184,14 @@ export default function CustomerDashboardPage() {
                         Score: 70/100
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400">Scanned on Aug 7, 2026 · Performance 40 · SEO 69 · Security 100</p>
+                    <p className="text-xs text-slate-400">
+                      Scanned on Aug 7, 2026 · Performance 40 · SEO 69 · Security 100
+                    </p>
                   </div>
-                  <Link href="/audit" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5">
+                  <Link
+                    href="/audit"
+                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5"
+                  >
                     View Full Report <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -178,14 +199,19 @@ export default function CustomerDashboardPage() {
                 <div className="glass-card p-6 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-base">yampleauditai.vercel.app</span>
+                      <span className="font-bold text-white text-base">Your Website</span>
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
                         Score: 92/100
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400">Scanned on Aug 7, 2026 · Performance 96 · SEO 92 · Security 90</p>
+                    <p className="text-xs text-slate-400">
+                      Scanned on Aug 7, 2026 · Performance 96 · SEO 92 · Security 90
+                    </p>
                   </div>
-                  <Link href="/audit" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5">
+                  <Link
+                    href="/audit"
+                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-violet-300 transition-all flex items-center gap-1.5"
+                  >
                     View Full Report <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -198,15 +224,21 @@ export default function CustomerDashboardPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-black text-white">My Custom Quotations</h2>
-                <p className="text-xs text-slate-400">Itemized quotes generated based on your requirement inputs.</p>
+                <p className="text-xs text-slate-400">
+                  Itemized quotes generated based on your requirement inputs.
+                </p>
               </div>
 
               {activeQuote ? (
                 <div className="glass-card p-6 rounded-2xl border border-violet-500/30 bg-violet-950/20 space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-xs font-mono text-violet-400 font-bold">Quote #{activeQuote.quoteId}</span>
-                      <h3 className="text-lg font-bold text-white mt-0.5">Custom Growth Bundle ({activeQuote.customer?.businessName || 'Business'})</h3>
+                      <span className="text-xs font-mono text-violet-400 font-bold">
+                        Quote #{activeQuote.quoteId}
+                      </span>
+                      <h3 className="text-lg font-bold text-white mt-0.5">
+                        Custom Growth Bundle ({activeQuote.customer?.businessName || 'Business'})
+                      </h3>
                     </div>
                     <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
                       Locked Price: {formatPrice(activeQuote.totalUSD)}
@@ -214,16 +246,35 @@ export default function CustomerDashboardPage() {
                   </div>
 
                   <div className="text-xs text-slate-400 space-y-1">
-                    <div><strong>Features Included:</strong> {activeQuote.selectedFeatures?.join(', ')}</div>
-                    <div><strong>Target Timeline:</strong> {activeQuote.customer?.deadline || '7-10 Days'}</div>
+                    <div>
+                      <strong>Features Included:</strong> {activeQuote.selectedFeatures?.join(', ')}
+                    </div>
+                    <div>
+                      <strong>Target Timeline:</strong>{' '}
+                      {activeQuote.customer?.deadline || '7-10 Days'}
+                    </div>
                   </div>
 
                   <div className="pt-2 flex flex-wrap gap-3">
-                    <Link href="/checkout" className="px-5 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold hover:opacity-90 transition-all">
+                    <Link
+                      href="/checkout"
+                      className="px-5 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold hover:opacity-90 transition-all"
+                    >
                       Proceed to Checkout →
                     </Link>
                     <button
-                      onClick={() => window.open(`/api/pdf/generate?type=quote&id=${activeQuote.quoteId}&name=${encodeURIComponent(activeQuote.customer?.name || 'Valued Client')}&amount=${encodeURIComponent(activeQuote.pricing?.totalUSD || '$837.00')}&autoprint=true`, '_blank')}
+                      onClick={() =>
+                        window.open(
+                          `/api/pdf/generate?type=quote&id=${
+                            activeQuote.quoteId
+                          }&name=${encodeURIComponent(
+                            activeQuote.customer?.name || 'Valued Client'
+                          )}&amount=${encodeURIComponent(
+                            activeQuote.pricing?.totalUSD || '$837.00'
+                          )}&autoprint=true`,
+                          '_blank'
+                        )
+                      }
                       className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-semibold hover:bg-white/10 transition-all"
                     >
                       📄 Download PDF Quote
@@ -233,7 +284,10 @@ export default function CustomerDashboardPage() {
               ) : (
                 <div className="glass-card p-8 rounded-2xl border border-white/10 text-center space-y-3">
                   <p className="text-slate-400 text-xs">No active quotes found.</p>
-                  <Link href="/requirements" className="inline-block px-5 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold">
+                  <Link
+                    href="/requirements"
+                    className="inline-block px-5 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold"
+                  >
                     + Fill Requirement Form for Instant Quote
                   </Link>
                 </div>
@@ -245,15 +299,23 @@ export default function CustomerDashboardPage() {
           {activeTab === 'projects' && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-black text-white">Active Project &amp; Milestone Tracker</h2>
-                <p className="text-xs text-slate-400">Real-time status of your custom website redesign project.</p>
+                <h2 className="text-xl font-black text-white">
+                  Active Project &amp; Milestone Tracker
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Real-time status of your custom website redesign project.
+                </p>
               </div>
 
               <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
                   <div>
-                    <span className="text-xs font-mono text-emerald-400 font-bold uppercase">Project ID: PRJ-2026-9042</span>
-                    <h3 className="text-xl font-black text-white mt-1">Website &amp; AI Assistant Redesign</h3>
+                    <span className="text-xs font-mono text-emerald-400 font-bold uppercase">
+                      Project ID: PRJ-2026-9042
+                    </span>
+                    <h3 className="text-xl font-black text-white mt-1">
+                      Website &amp; AI Assistant Redesign
+                    </h3>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-slate-400">Overall Progress</div>
@@ -265,13 +327,15 @@ export default function CustomerDashboardPage() {
                 <div className="space-y-4">
                   {MILESTONES.map((m, idx) => (
                     <div key={m.id} className="flex items-center gap-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                        m.done
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                          : m.active
-                          ? 'bg-violet-500/20 text-violet-300 border border-violet-500 animate-pulse'
-                          : 'bg-white/5 text-slate-500 border border-white/10'
-                      }`}>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          m.done
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                            : m.active
+                            ? 'bg-violet-500/20 text-violet-300 border border-violet-500 animate-pulse'
+                            : 'bg-white/5 text-slate-500 border border-white/10'
+                        }`}
+                      >
                         {m.done ? '✓' : idx + 1}
                       </div>
                       <div className="flex-1">
@@ -305,7 +369,9 @@ export default function CustomerDashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-emerald-400 font-mono">{formatPrice(837)}</div>
-                  <span className="text-[10px] text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">PAID</span>
+                  <span className="text-[10px] text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    PAID
+                  </span>
                 </div>
               </div>
             </div>
@@ -316,22 +382,30 @@ export default function CustomerDashboardPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-black text-white">Messages</h2>
-                <p className="text-xs text-slate-400">Communication from Yample Labs team about your projects.</p>
+                <p className="text-xs text-slate-400">
+                  Communication from Yample Labs team about your projects.
+                </p>
               </div>
               <div className="space-y-3">
                 <div className="glass-card p-5 rounded-2xl border border-violet-500/30 bg-violet-950/10 space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">YL</div>
+                      <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">
+                        YL
+                      </div>
                       <div>
                         <div className="text-sm font-bold text-white">Yample Labs Team</div>
                         <div className="text-[10px] text-slate-500">Aug 8, 2026 · 11:30 AM</div>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">New</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                      New
+                    </span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed pl-11">
-                    Hi! Your design phase is progressing well. We've completed 75% of the UI mockups for your website. Can you please review the color palette we shared and confirm your approval? We'll move to development once confirmed.
+                    Hi! Your design phase is progressing well. We&apos;ve completed 75% of the UI
+                    mockups for your website. Can you please review the color palette we shared and
+                    confirm your approval? We&apos;ll move to development once confirmed.
                   </p>
                   <div className="pl-11">
                     <div className="flex items-center gap-2 mt-2">
@@ -349,14 +423,17 @@ export default function CustomerDashboardPage() {
 
                 <div className="glass-card p-5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-3 opacity-60">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">YL</div>
+                    <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">
+                      YL
+                    </div>
                     <div>
                       <div className="text-sm font-bold text-white">Yample Labs Team</div>
                       <div className="text-[10px] text-slate-500">Aug 7, 2026 · 02:15 PM</div>
                     </div>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed pl-11">
-                    Your order ORD-2026-9401 has been confirmed. Our team will begin the planning phase within the next 4 business hours. Thank you for choosing Yample Labs!
+                    Your order ORD-2026-9401 has been confirmed. Our team will begin the planning
+                    phase within the next 4 business hours. Thank you for choosing Yample Labs!
                   </p>
                 </div>
               </div>
@@ -368,7 +445,9 @@ export default function CustomerDashboardPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-black text-white">Payment History</h2>
-                <p className="text-xs text-slate-400">All transactions processed through Razorpay and other channels.</p>
+                <p className="text-xs text-slate-400">
+                  All transactions processed through Razorpay and other channels.
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
@@ -385,12 +464,18 @@ export default function CustomerDashboardPage() {
                   <tbody className="divide-y divide-white/5">
                     <tr className="glass-card">
                       <td className="py-3.5 px-4 text-slate-400">Aug 7, 2026</td>
-                      <td className="py-3.5 px-4 text-white font-medium">Website Redesign + AI Bot</td>
+                      <td className="py-3.5 px-4 text-white font-medium">
+                        Website Redesign + AI Bot
+                      </td>
                       <td className="py-3.5 px-4 font-mono text-violet-400">ORD-2026-9401</td>
                       <td className="py-3.5 px-4 text-slate-300">Razorpay · UPI</td>
-                      <td className="py-3.5 px-4 font-mono text-emerald-400 font-bold">{formatPrice(837)}</td>
+                      <td className="py-3.5 px-4 font-mono text-emerald-400 font-bold">
+                        {formatPrice(837)}
+                      </td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">PAID</span>
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                          PAID
+                        </span>
                       </td>
                     </tr>
                   </tbody>
@@ -404,24 +489,61 @@ export default function CustomerDashboardPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-black text-white">Download Reports</h2>
-                <p className="text-xs text-slate-400">PDF reports, invoices, and project deliverables available for download.</p>
+                <p className="text-xs text-slate-400">
+                  PDF reports, invoices, and project deliverables available for download.
+                </p>
               </div>
               <div className="space-y-3">
                 {[
-                  { name: 'Audit Report — github.com', date: 'Aug 7, 2026', type: 'Audit PDF', icon: '📊', size: '2.4 MB' },
-                  { name: 'Audit Report — yampleauditai.vercel.app', date: 'Aug 7, 2026', type: 'Audit PDF', icon: '📊', size: '3.1 MB' },
-                  { name: 'Invoice #INV-2026-4401', date: 'Aug 7, 2026', type: 'Invoice PDF', icon: '🧾', size: '156 KB' },
+                  {
+                    name: 'Audit Report — github.com',
+                    date: 'Aug 7, 2026',
+                    type: 'Audit PDF',
+                    icon: '📊',
+                    size: '2.4 MB',
+                  },
+                  {
+                    name: 'Audit Report — Your Website',
+                    date: 'Aug 7, 2026',
+                    type: 'Audit PDF',
+                    icon: '📊',
+                    size: '3.1 MB',
+                  },
+                  {
+                    name: 'Invoice #INV-2026-4401',
+                    date: 'Aug 7, 2026',
+                    type: 'Invoice PDF',
+                    icon: '🧾',
+                    size: '156 KB',
+                  },
                 ].map((file) => (
-                  <div key={file.name} className="glass-card p-5 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div
+                    key={file.name}
+                    className="glass-card p-5 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  >
                     <div className="flex items-center gap-4">
                       <span className="text-2xl">{file.icon}</span>
                       <div className="space-y-1">
                         <div className="font-semibold text-white text-sm">{file.name}</div>
-                        <div className="text-[10px] text-slate-500">{file.type} · {file.size} · Generated {file.date}</div>
+                        <div className="text-[10px] text-slate-500">
+                          {file.type} · {file.size} · Generated {file.date}
+                        </div>
                       </div>
                     </div>
                     <button
-                      onClick={() => window.open(`/api/pdf/generate?type=${file.type.includes('Invoice') ? 'invoice' : 'audit'}&id=${file.name.replace(/[^a-zA-Z0-9-]/g, '_')}&name=${encodeURIComponent(user?.fullName || 'Valued Client')}&autoprint=true`, '_blank')}
+                      onClick={() =>
+                        window.open(
+                          `/api/pdf/generate?type=${
+                            file.type.includes('Invoice') ? 'invoice' : 'audit'
+                          }&id=${file.name.replace(
+                            /[^a-zA-Z0-9-]/g,
+                            '_'
+                          )}&name=${encodeURIComponent(
+                            user?.fullName || 'Valued Client'
+                          )}&autoprint=true`,
+                          '_blank'
+                        )
+                      }
                       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs font-semibold hover:bg-violet-600/30 transition-all"
                     >
                       <Download className="w-3.5 h-3.5" /> Download PDF
@@ -438,7 +560,9 @@ export default function CustomerDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-black text-white">Support Tickets</h2>
-                  <p className="text-xs text-slate-400">Get help with your orders, projects, or billing questions.</p>
+                  <p className="text-xs text-slate-400">
+                    Get help with your orders, projects, or billing questions.
+                  </p>
                 </div>
                 <button
                   onClick={() => setTicketSuccess(true)}
@@ -449,14 +573,24 @@ export default function CustomerDashboardPage() {
               </div>
               {ticketSuccess && (
                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-300 flex items-center justify-between">
-                  <span>✅ Support Ticket form initialized. Our agent will connect with you via email within 2 hours.</span>
-                  <button onClick={() => setTicketSuccess(false)} className="text-slate-400 hover:text-white">✕</button>
+                  <span>
+                    ✅ Support Ticket form initialized. Our agent will connect with you via email
+                    within 2 hours.
+                  </span>
+                  <button
+                    onClick={() => setTicketSuccess(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
               <div className="glass-card p-8 rounded-2xl border border-white/10 text-center space-y-3">
                 <div className="text-3xl">🎫</div>
                 <p className="text-slate-400 text-sm">No open support tickets.</p>
-                <p className="text-xs text-slate-500">For urgent issues, use the Chat on WhatsApp button.</p>
+                <p className="text-xs text-slate-500">
+                  For urgent issues, use the Chat on WhatsApp button.
+                </p>
               </div>
             </div>
           )}
@@ -466,40 +600,81 @@ export default function CustomerDashboardPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-black text-white">Profile Settings</h2>
-                <p className="text-xs text-slate-400">Update your contact details and account preferences.</p>
+                <p className="text-xs text-slate-400">
+                  Update your contact details and account preferences.
+                </p>
               </div>
 
               <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-4 max-w-lg">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Full Name</label>
-                  <input type="text" defaultValue={user?.fullName || user?.name || ''} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={user?.fullName || user?.name || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Email Address</label>
-                  <input type="email" defaultValue={user?.email || ''} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    defaultValue={user?.email || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Mobile / WhatsApp</label>
-                  <input type="text" defaultValue={user?.phone || user?.mobile || ''} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
+                    Mobile / WhatsApp
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={user?.phone || user?.mobile || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Country</label>
-                  <input type="text" defaultValue={user?.country || ''} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={user?.country || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Company Name</label>
-                  <input type="text" defaultValue={user?.companyName || ''} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={user?.companyName || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Website URL</label>
-                  <input type="url" defaultValue={user?.websiteUrl || ''} className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">
+                    Website URL
+                  </label>
+                  <input
+                    type="url"
+                    defaultValue={user?.websiteUrl || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm"
+                  />
                 </div>
                 {profileSaved && (
                   <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-300">
                     ✅ Profile settings saved successfully!
                   </div>
                 )}
-                <button onClick={() => setProfileSaved(true)} className="px-6 py-3 rounded-xl bg-violet-600 text-white font-bold text-xs hover:opacity-90 transition-all">
+                <button
+                  onClick={() => setProfileSaved(true)}
+                  className="px-6 py-3 rounded-xl bg-violet-600 text-white font-bold text-xs hover:opacity-90 transition-all"
+                >
                   Save Changes
                 </button>
               </div>
@@ -508,5 +683,5 @@ export default function CustomerDashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

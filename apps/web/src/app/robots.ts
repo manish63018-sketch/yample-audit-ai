@@ -1,4 +1,5 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next';
+import { SITE_CONFIG } from '@/lib/config';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: 'https://yampleauditai.vercel.app/sitemap.xml',
-  }
+    sitemap: `${SITE_CONFIG.siteUrl}/sitemap.xml`,
+  };
 }

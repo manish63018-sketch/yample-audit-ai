@@ -1,39 +1,43 @@
-import { NextResponse } from 'next/server'
-import { AuditRepository, ReportRepository, createAdminSupabaseClient } from '@auditai/db'
+import { NextResponse } from 'next/server';
+import { AuditRepository, ReportRepository, createAdminSupabaseClient } from '@auditai/db';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: rawId } = await params
-    const id = (rawId || '').replace(/^demo-/, 'audit-')
-    const reqUrl = new URL(request.url)
-    const targetUrlParam = reqUrl.searchParams.get('url')
+    const { id: rawId } = await params;
+    const id = (rawId || '').replace(/^demo-/, 'audit-');
+    const reqUrl = new URL(request.url);
+    const targetUrlParam = reqUrl.searchParams.get('url');
 
     if (!id) {
       return NextResponse.json(
         { success: false, error: { code: 'INVALID_ID', message: 'Audit ID is required.' } },
         { status: 400 }
-      )
+      );
     }
 
-    let audit = null
-    let fullReports: any = { pagespeed: null, lighthouse: null, accessibility: null, seo: null, security: null, ai: null }
+    let audit = null;
+    let fullReports: any = {
+      pagespeed: null,
+      lighthouse: null,
+      accessibility: null,
+      seo: null,
+      security: null,
+      ai: null,
+    };
 
     try {
-      const adminClient = createAdminSupabaseClient()
-      const auditRepo = new AuditRepository(adminClient)
-      const reportRepo = new ReportRepository(adminClient)
+      const adminClient = createAdminSupabaseClient();
+      const auditRepo = new AuditRepository(adminClient);
+      const reportRepo = new ReportRepository(adminClient);
 
-      audit = await auditRepo.findById(id)
+      audit = await auditRepo.findById(id);
       if (audit) {
-        fullReports = await reportRepo.getFullAuditReport(id)
+        fullReports = await reportRepo.getFullAuditReport(id);
         if (fullReports.fullResult) {
           return NextResponse.json({
             success: true,
             data: fullReports.fullResult,
-          })
+          });
         }
       }
     } catch {
@@ -41,9 +45,9 @@ export async function GET(
     }
 
     // Determine target URL from DB or search param or fallback
-    const rawUrl = audit?.website_id || targetUrlParam || 'yampleauditai.vercel.app'
-    const formattedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`
-    const domainName = formattedUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+    const rawUrl = audit?.website_id || targetUrlParam || '';
+    const formattedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    const domainName = formattedUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
 
     // Reconstruct full result object dynamically
     const reconstructed = {
@@ -54,7 +58,9 @@ export async function GET(
         overall: audit?.score || 88,
         technicalHealth: 90,
         businessGrowth: 86,
-        performance: fullReports.pagespeed?.lcp ? Math.max(30, Math.round(100 - fullReports.pagespeed.lcp * 12)) : 88,
+        performance: fullReports.pagespeed?.lcp
+          ? Math.max(30, Math.round(100 - fullReports.pagespeed.lcp * 12))
+          : 88,
         seo: 92,
         accessibility: Math.min(100, (fullReports.accessibility?.passed_count || 24) * 4),
         security: 85,
@@ -82,17 +88,34 @@ export async function GET(
       business: {
         businessScore: 86,
         detectedCategory: 'SaaS Platform & Digital Agency',
-        detectedFeatures: ['AI Audit Engine', 'Interactive Quote Calculator', 'E-Signature Modal', 'Support Desk'],
+        detectedFeatures: [
+          'AI Audit Engine',
+          'Interactive Quote Calculator',
+          'E-Signature Modal',
+          'Support Desk',
+        ],
         missingFeatures: [
-          { feature: 'Sub-1.5s Core Web Vitals Optimization', reason: 'Mobile LCP and font render optimization needed', importance: 'critical' },
-          { feature: 'Automated 24/7 AI Lead Qualifier Widget', reason: 'Captures and qualifies inbound visitors after-hours', importance: 'high' },
+          {
+            feature: 'Sub-1.5s Core Web Vitals Optimization',
+            reason: 'Mobile LCP and font render optimization needed',
+            importance: 'critical',
+          },
+          {
+            feature: 'Automated 24/7 AI Lead Qualifier Widget',
+            reason: 'Captures and qualifies inbound visitors after-hours',
+            importance: 'high',
+          },
         ],
         aiInsights: `Analysis completed for ${domainName}. Site maintains strong foundational UX with key optimization gains available in Core Web Vitals and AI lead automation.`,
       },
       competitors: {
         industry: 'Digital SaaS & Agency Services',
         comparisons: [
-          { name: 'Top Tier SaaS Competitor', score: 94, notes: 'Fast edge caching and instant AI lead widget' },
+          {
+            name: 'Top Tier SaaS Competitor',
+            score: 94,
+            notes: 'Fast edge caching and instant AI lead widget',
+          },
         ],
       },
       revenue: {
@@ -104,8 +127,16 @@ export async function GET(
       },
       quote: {
         recommendedServices: [
-          { serviceId: 'website-upgrade', title: 'Performance Acceleration & Core Web Vitals Fix', price: 599 },
-          { serviceId: 'ai-automation', title: '24/7 Inbound AI Lead Qualifier Assistant', price: 799 },
+          {
+            serviceId: 'website-upgrade',
+            title: 'Performance Acceleration & Core Web Vitals Fix',
+            price: 599,
+          },
+          {
+            serviceId: 'ai-automation',
+            title: '24/7 Inbound AI Lead Qualifier Assistant',
+            price: 799,
+          },
         ],
         subtotal: 1398,
         bundleDiscountPercent: 10,
@@ -120,7 +151,8 @@ export async function GET(
             title: `Accelerate Core Web Vitals & Mobile LCP for ${domainName}`,
             impact: 'critical',
             effort: 'medium',
-            description: 'Optimize image delivery, defer non-critical scripts, and enable edge CDN compression.',
+            description:
+              'Optimize image delivery, defer non-critical scripts, and enable edge CDN compression.',
             estimatedRoi: '+32% Speed Boost',
             confidence: 95,
           },
@@ -128,7 +160,8 @@ export async function GET(
             title: `Integrate 24/7 AI Inbound Lead Qualifier`,
             impact: 'high',
             effort: 'low',
-            description: 'Embed intelligent AI chatbot agent to qualify prospects and answer FAQs automatically.',
+            description:
+              'Embed intelligent AI chatbot agent to qualify prospects and answer FAQs automatically.',
             estimatedRoi: '+18% Lead Conversion Uplift',
             confidence: 93,
           },
@@ -137,17 +170,17 @@ export async function GET(
         providerUsed: 'AuditAI Engine v2',
       },
       reports: fullReports,
-    }
+    };
 
     return NextResponse.json({
       success: true,
       data: reconstructed,
-    })
+    });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch audit.'
+    const message = error instanceof Error ? error.message : 'Failed to fetch audit.';
     return NextResponse.json(
       { success: false, error: { code: 'SERVER_ERROR', message } },
       { status: 500 }
-    )
+    );
   }
 }

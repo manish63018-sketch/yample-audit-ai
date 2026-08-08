@@ -1,15 +1,28 @@
-'use client'
+'use client';
 
-import { useState, useEffect, FormEvent } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { HeroAnimation } from '@/components/hero/HeroAnimation'
-import { Navbar } from '@/components/layout/navbar'
-import { useCart } from '@/context/CartContext'
-import { AIAssistantBot } from '@/components/journey/AIAssistantBot'
-import { ComparePlansTable } from '@/components/pricing/ComparePlansTable'
-import { WhatsIncludedSection } from '@/components/sections/WhatsIncludedSection'
-import { ArrowRight, Search, Zap, CheckCircle2, ShieldCheck, TrendingUp, Award, Clock } from 'lucide-react'
+import type { FormEvent } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { HeroAnimation } from '@/components/hero/HeroAnimation';
+import { Navbar } from '@/components/layout/navbar';
+import { useCart } from '@/context/CartContext';
+import { AIAssistantBot } from '@/components/journey/AIAssistantBot';
+import { ComparePlansTable } from '@/components/pricing/ComparePlansTable';
+import { WhatsIncludedSection } from '@/components/sections/WhatsIncludedSection';
+import {
+  ArrowRight,
+  Search,
+  Zap,
+  Globe,
+  Sparkles,
+  Code2,
+  Rocket,
+  CheckCircle2,
+  ShieldCheck,
+  TrendingUp,
+  Award,
+} from 'lucide-react';
 
 /* ─── Data ─────────────────────────────────────────────────────────── */
 const SERVICES = [
@@ -21,7 +34,8 @@ const SERVICES = [
     price: 599,
     timeline: '7 days',
     benefits: ['50%+ faster load time', 'Core Web Vitals fix', 'Modern responsive design'],
-    description: 'We accelerate your existing website — Core Web Vitals, SEO structure, WCAG accessibility, and a modern UI refresh. No rebuild required.',
+    description:
+      'We accelerate your existing website — Core Web Vitals, SEO structure, WCAG accessibility, and a modern UI refresh. No rebuild required.',
     badge: 'Most Popular',
   },
   {
@@ -32,7 +46,8 @@ const SERVICES = [
     price: 899,
     timeline: '10 days',
     benefits: ['Custom branded design', 'Mobile-first', 'SEO-ready launch'],
-    description: 'A professionally crafted Next.js website — designed for conversions, optimized for Google, and built to represent your brand.',
+    description:
+      'A professionally crafted Next.js website — designed for conversions, optimized for Google, and built to represent your brand.',
     badge: null,
   },
   {
@@ -43,7 +58,8 @@ const SERVICES = [
     price: 799,
     timeline: '12 days',
     benefits: ['24/7 AI customer support', 'Lead qualification', 'WhatsApp integration'],
-    description: 'Deploy AI assistants that handle customer queries, qualify leads automatically, and integrate with your CRM.',
+    description:
+      'Deploy AI assistants that handle customer queries, qualify leads automatically, and integrate with your CRM.',
     badge: 'Featured',
   },
   {
@@ -54,7 +70,8 @@ const SERVICES = [
     price: 1299,
     timeline: '18 days',
     benefits: ['React / Next.js frontend', 'Custom API backend', 'Database & auth'],
-    description: 'Full-stack web applications — dashboards, booking systems, portals, and SaaS tools built with modern tech.',
+    description:
+      'Full-stack web applications — dashboards, booking systems, portals, and SaaS tools built with modern tech.',
     badge: null,
   },
   {
@@ -65,7 +82,8 @@ const SERVICES = [
     price: 1499,
     timeline: '21 days',
     benefits: ['Cross-platform React Native', 'Push notifications', 'App Store ready'],
-    description: 'Cross-platform mobile apps built with React Native — iOS & Android from a single codebase with native performance.',
+    description:
+      'Cross-platform mobile apps built with React Native — iOS & Android from a single codebase with native performance.',
     badge: null,
   },
   {
@@ -76,10 +94,11 @@ const SERVICES = [
     price: 3499,
     timeline: 'Custom',
     benefits: ['Multi-tenant architecture', 'Subscription billing', 'Admin & analytics'],
-    description: 'End-to-end SaaS platform development — multi-tenant architecture, Stripe billing, role-based access, and analytics built for scale.',
+    description:
+      'End-to-end SaaS platform development — multi-tenant architecture, Stripe billing, role-based access, and analytics built for scale.',
     badge: 'Enterprise',
   },
-]
+];
 
 const PRICING = [
   {
@@ -139,14 +158,38 @@ const PRICING = [
     cta: 'Contact Us',
     href: '#contact',
   },
-]
+];
 
 const TRUST_METRICS = [
-  { value: '100+', label: 'Websites Audited', sub: 'Instant AI diagnostic reports', icon: Globe, color: '#4F8CFF' },
-  { value: '50+', label: 'Projects Delivered', sub: 'High-conversion SaaS web apps', icon: TrendingUp, color: '#8B5CF6' },
-  { value: '99%', label: 'Client Satisfaction', sub: 'Enterprise agency experience', icon: Award, color: '#38BDF8' },
-  { value: '24/7', label: 'AI Monitoring', sub: 'Real-time issue detection', icon: ShieldCheck, color: '#22C55E' },
-]
+  {
+    value: '100+',
+    label: 'Websites Audited',
+    sub: 'Instant AI diagnostic reports',
+    icon: Globe,
+    color: '#4F8CFF',
+  },
+  {
+    value: '50+',
+    label: 'Projects Delivered',
+    sub: 'High-conversion SaaS web apps',
+    icon: TrendingUp,
+    color: '#8B5CF6',
+  },
+  {
+    value: '99%',
+    label: 'Client Satisfaction',
+    sub: 'Enterprise agency experience',
+    icon: Award,
+    color: '#38BDF8',
+  },
+  {
+    value: '24/7',
+    label: 'AI Monitoring',
+    sub: 'Real-time issue detection',
+    icon: ShieldCheck,
+    color: '#22C55E',
+  },
+];
 
 const FAQS = [
   {
@@ -165,38 +208,46 @@ const FAQS = [
     q: 'Can I start with just the free audit?',
     a: 'Absolutely. The AI audit is 100% free — no sign-up or credit card required. Test your website first and explore recommended fixes before committing.',
   },
-]
+];
 
 /* ─── Service Detail Popup ──────────────────────────────────────────── */
-function ServiceDetailPopup({ service, onClose }: { service: typeof SERVICES[0]; onClose: () => void }) {
-  const { addItem, items } = useCart()
-  const isInCart = items.some(i => i.id === service.id)
+function ServiceDetailPopup({
+  service,
+  onClose,
+}: {
+  service: (typeof SERVICES)[0];
+  onClose: () => void;
+}) {
+  const { addItem, items } = useCart();
+  const isInCart = items.some((i) => i.id === service.id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
       <div
         className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-[#0F172A] p-6 shadow-2xl"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{ animation: 'scale-in 0.2s ease-out' }}
       >
         {(() => {
-          const Icon = service.icon
+          const Icon = service.icon;
           return (
             <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
               <Icon className="w-6 h-6" />
             </div>
-          )
+          );
         })()}
         <div className="flex items-center gap-2 mb-1">
           <h3 className="text-xl font-bold text-white">{service.title}</h3>
           {service.badge && (
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">{service.badge}</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              {service.badge}
+            </span>
           )}
         </div>
         <p className="text-slate-400 text-sm mb-4 leading-relaxed">{service.description}</p>
         <div className="mb-4 space-y-2">
-          {service.benefits.map(b => (
+          {service.benefits.map((b) => (
             <div key={b} className="flex items-center gap-2 text-sm text-slate-300">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{b}</span>
@@ -213,12 +264,20 @@ function ServiceDetailPopup({ service, onClose }: { service: typeof SERVICES[0];
           <button
             onClick={() => {
               if (service.price > 0) {
-                addItem({ id: service.id, name: service.title, price: service.price, timeline: service.timeline, benefits: service.benefits, category: 'service' })
+                addItem({
+                  id: service.id,
+                  name: service.title,
+                  price: service.price,
+                  timeline: service.timeline,
+                  benefits: service.benefits,
+                  category: 'service',
+                });
               }
-              onClose()
+              onClose();
             }}
             className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              isInCart ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-default'
+              isInCart
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-default'
                 : 'btn-gradient-primary'
             }`}
           >
@@ -227,52 +286,52 @@ function ServiceDetailPopup({ service, onClose }: { service: typeof SERVICES[0];
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /* ─── Main Page Component ─────────────────────────────────────────── */
 export default function LandingPage() {
-  const router = useRouter()
-  const [urlInput, setUrlInput] = useState('')
-  const [selectedService, setSelectedService] = useState<typeof SERVICES[0] | null>(null)
-  const [activeFaq, setActiveFaq] = useState<number | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState('')
+  const router = useRouter();
+  const [urlInput, setUrlInput] = useState('');
+  const [selectedService, setSelectedService] = useState<(typeof SERVICES)[0] | null>(null);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const extractCleanDomain = (inputUrl: string): string => {
-    let raw = inputUrl.trim()
-    if (!raw) return ''
+    const raw = inputUrl.trim();
+    if (!raw) return '';
 
     try {
-      const full = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
-      const parsed = new URL(full)
+      const full = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      const parsed = new URL(full);
 
       // If a nested report URL was pasted (e.g. /report/demo-...?url=https://target.com)
-      const nested = parsed.searchParams.get('url')
+      const nested = parsed.searchParams.get('url');
       if (nested) {
-        return extractCleanDomain(nested)
+        return extractCleanDomain(nested);
       }
 
       // Return clean origin or hostname
-      return parsed.hostname ? `https://${parsed.hostname}` : full
+      return parsed.hostname ? `https://${parsed.hostname}` : full;
     } catch {
-      return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+      return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
     }
-  }
+  };
 
   const handleAuditSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setSubmitError('')
+    e.preventDefault();
+    setSubmitError('');
 
-    const raw = urlInput.trim()
+    const raw = urlInput.trim();
     if (!raw) {
-      setSubmitError('Please enter a website URL.')
-      return
+      setSubmitError('Please enter a website URL.');
+      return;
     }
 
-    const cleanUrl = extractCleanDomain(raw)
+    const cleanUrl = extractCleanDomain(raw);
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const res = await fetch('/api/audits/start', {
@@ -284,35 +343,38 @@ export default function LandingPage() {
           country: 'US',
           businessGoal: 'More Leads',
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!data.success) {
-        setSubmitError(data.error?.message || 'Failed to start audit. Please try again.')
-        setIsSubmitting(false)
-        return
+        setSubmitError(data.error?.message || 'Failed to start audit. Please try again.');
+        setIsSubmitting(false);
+        return;
       }
 
-      const auditId = data.auditId
+      const auditId = data.auditId;
 
       // Save audit params to localStorage so /audit/[id] can access them
       if (typeof window !== 'undefined') {
-        localStorage.setItem(`audit_meta_${auditId}`, JSON.stringify({
-          url: data.url || cleanUrl,
-          businessCategory: 'General Business',
-          country: 'US',
-          businessGoal: 'More Leads',
-        }))
+        localStorage.setItem(
+          `audit_meta_${auditId}`,
+          JSON.stringify({
+            url: data.url || cleanUrl,
+            businessCategory: 'General Business',
+            country: 'US',
+            businessGoal: 'More Leads',
+          })
+        );
       }
 
       // Redirect directly to the loading screen — user never sees the audit form
-      router.push(`/audit/${auditId}`)
+      router.push(`/audit/${auditId}`);
     } catch {
-      setSubmitError('Network error. Please check your connection and try again.')
-      setIsSubmitting(false)
+      setSubmitError('Network error. Please check your connection and try again.');
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="aurora-bg min-h-screen text-slate-100 selection:bg-purple-500/30 selection:text-white overflow-hidden">
@@ -325,13 +387,11 @@ export default function LandingPage() {
       <Navbar />
 
       <main id="main-content" className="relative z-10">
-
         {/* ═══════════════════════════════════════════════════════
             1. HERO SECTION
         ═══════════════════════════════════════════════════════ */}
         <section className="relative pt-12 pb-24 md:pt-20 md:pb-32">
           <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-12 items-center">
-            
             {/* Left Hero Text & URL Input */}
             <div className="lg:col-span-7 space-y-6 text-left">
               {/* Badge */}
@@ -348,7 +408,8 @@ export default function LandingPage() {
 
               {/* Subheading (Replaced as requested) */}
               <p className="text-lg sm:text-xl text-slate-300 font-normal leading-relaxed max-w-2xl">
-                AI-powered Website Audit, Business Intelligence, Growth Roadmap and Development Platform.
+                AI-powered Website Audit, Business Intelligence, Growth Roadmap and Development
+                Platform.
               </p>
 
               {/* BIGGEST FEATURE: Hero URL Audit Input Bar */}
@@ -363,7 +424,7 @@ export default function LandingPage() {
                     id="hero-url-input"
                     aria-label="Website URL to analyze"
                     value={urlInput}
-                    onChange={e => setUrlInput(e.target.value)}
+                    onChange={(e) => setUrlInput(e.target.value)}
                     placeholder="Enter Website URL (e.g., yourwebsite.com)"
                     required
                     className="w-full bg-transparent text-sm text-white placeholder-slate-400 outline-none"
@@ -390,7 +451,9 @@ export default function LandingPage() {
                 </button>
               </form>
               {submitError && (
-                <p className="text-red-400 text-xs mt-2 ml-2" id="hero-url-error">{submitError}</p>
+                <p className="text-red-400 text-xs mt-2 ml-2" id="hero-url-error">
+                  {submitError}
+                </p>
               )}
 
               {/* Action Buttons */}
@@ -437,20 +500,23 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {TRUST_METRICS.map((m, i) => {
-                const Icon = m.icon
+                const Icon = m.icon;
                 return (
                   <div
                     key={i}
                     className="glass-card p-6 text-center group hover:scale-[1.02] transition-all duration-300"
                   >
                     <Icon className="w-6 h-6 mx-auto mb-2" style={{ color: m.color }} />
-                    <div className="text-4xl font-extrabold text-white tracking-tight mb-1" style={{ color: m.color }}>
+                    <div
+                      className="text-4xl font-extrabold text-white tracking-tight mb-1"
+                      style={{ color: m.color }}
+                    >
                       {m.value}
                     </div>
                     <div className="text-sm font-bold text-slate-200">{m.label}</div>
                     <div className="text-xs text-slate-400 mt-0.5">{m.sub}</div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -469,21 +535,48 @@ export default function LandingPage() {
                 Before vs. After Optimization
               </h2>
               <p className="text-slate-400 text-base">
-                Real measurable performance & conversion jumps delivered for clients across every audit dimension.
+                Real measurable performance & conversion jumps delivered for clients across every
+                audit dimension.
               </p>
             </div>
 
             {/* Score Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Performance', before: 48, after: 92, boost: '+44 Boost', color: '#22C55E' },
-                { label: 'SEO Signal', before: 67, after: 100, boost: '+33 Boost', color: '#4F8CFF' },
-                { label: 'Accessibility', before: 71, after: 96, boost: '+25 Boost', color: '#8B5CF6' },
-                { label: 'Business Score', before: 42, after: 89, boost: '+47 Boost', color: '#EC4899' },
+                {
+                  label: 'Performance',
+                  before: 48,
+                  after: 92,
+                  boost: '+44 Boost',
+                  color: '#22C55E',
+                },
+                {
+                  label: 'SEO Signal',
+                  before: 67,
+                  after: 100,
+                  boost: '+33 Boost',
+                  color: '#4F8CFF',
+                },
+                {
+                  label: 'Accessibility',
+                  before: 71,
+                  after: 96,
+                  boost: '+25 Boost',
+                  color: '#8B5CF6',
+                },
+                {
+                  label: 'Business Score',
+                  before: 42,
+                  after: 89,
+                  boost: '+47 Boost',
+                  color: '#EC4899',
+                },
               ].map((card, i) => (
                 <div key={i} className="glass-card p-6 relative overflow-hidden group">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      {card.label}
+                    </span>
                     <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                       {card.boost}
                     </span>
@@ -492,12 +585,17 @@ export default function LandingPage() {
                   <div className="flex items-baseline justify-between my-4">
                     <div>
                       <div className="text-xs text-slate-400">Before</div>
-                      <div className="text-2xl font-bold text-slate-400 line-through">{card.before}</div>
+                      <div className="text-2xl font-bold text-slate-400 line-through">
+                        {card.before}
+                      </div>
                     </div>
                     <ArrowRight className="w-5 h-5 text-purple-400" />
                     <div className="text-right">
                       <div className="text-xs text-emerald-400 font-semibold">After Audit</div>
-                      <div className="text-4xl font-extrabold text-white" style={{ color: card.color }}>
+                      <div
+                        className="text-4xl font-extrabold text-white"
+                        style={{ color: card.color }}
+                      >
                         {card.after}
                       </div>
                     </div>
@@ -531,13 +629,17 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs font-semibold">
                 High Impact Solutions
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Our Premium Services</h2>
-              <p className="text-slate-400 max-w-xl mx-auto">Click any service to inspect full scope, timeline, and add to project plan.</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                Our Premium Services
+              </h2>
+              <p className="text-slate-400 max-w-xl mx-auto">
+                Click any service to inspect full scope, timeline, and add to project plan.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {SERVICES.map(service => {
-                const Icon = service.icon
+              {SERVICES.map((service) => {
+                const Icon = service.icon;
                 return (
                   <div
                     key={service.id}
@@ -570,7 +672,7 @@ export default function LandingPage() {
                       </span>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -590,12 +692,16 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 text-xs font-semibold">
                 Transparent Pricing
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Fixed Investment Plans</h2>
-              <p className="text-slate-400">Start with a free audit. Choose a package when ready. No hidden fees.</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                Fixed Investment Plans
+              </h2>
+              <p className="text-slate-400">
+                Start with a free audit. Choose a package when ready. No hidden fees.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {PRICING.map(plan => (
+              {PRICING.map((plan) => (
                 <div
                   key={plan.name}
                   className={`glass-card p-8 relative flex flex-col justify-between ${
@@ -616,7 +722,7 @@ export default function LandingPage() {
                     <div className="text-xs text-slate-400 mb-6">{plan.sub}</div>
 
                     <div className="space-y-3 mb-8">
-                      {plan.features.map(f => (
+                      {plan.features.map((f) => (
                         <div key={f} className="flex items-start gap-2.5 text-xs text-slate-300">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                           <span>{f}</span>
@@ -649,7 +755,9 @@ export default function LandingPage() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12 space-y-2">
               <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
-              <p className="text-slate-400 text-sm">Everything you need to know about AuditAI platform.</p>
+              <p className="text-slate-400 text-sm">
+                Everything you need to know about AuditAI platform.
+              </p>
             </div>
             <div className="space-y-3">
               {FAQS.map((faq, i) => (
@@ -675,20 +783,31 @@ export default function LandingPage() {
         {/* ═══════════════════════════════════════════════════════
             7. FOOTER CTA & CONTACT
         ═══════════════════════════════════════════════════════ */}
-        <footer id="contact" role="contentinfo" className="py-24 border-t border-white/5 bg-[#050816]">
+        <footer
+          id="contact"
+          role="contentinfo"
+          className="py-24 border-t border-white/5 bg-[#050816]"
+        >
           <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
             <div className="glass-card p-12 relative overflow-hidden bg-gradient-to-br from-blue-900/30 via-purple-900/20 to-slate-900">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-3">
                 Ready to Turn Your Website Into a Revenue Machine?
               </h2>
               <p className="text-slate-300 text-base max-w-xl mx-auto mb-8">
-                Get your instant free website audit or connect with our engineering team for a custom quote.
+                Get your instant free website audit or connect with our engineering team for a
+                custom quote.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link href="/audit" className="btn-gradient-primary px-8 py-4 rounded-xl font-bold text-sm">
+                <Link
+                  href="/audit"
+                  className="btn-gradient-primary px-8 py-4 rounded-xl font-bold text-sm"
+                >
                   🚀 Launch Free Audit Now
                 </Link>
-                <Link href="/calculator" className="btn-glass-secondary px-8 py-4 rounded-xl font-bold text-sm">
+                <Link
+                  href="/calculator"
+                  className="btn-glass-secondary px-8 py-4 rounded-xl font-bold text-sm"
+                >
                   🧮 Use Project Calculator
                 </Link>
               </div>
@@ -697,14 +816,19 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-between items-center text-xs text-slate-300 pt-8 border-t border-white/10">
               <div>© 2026 Yample Labs. All rights reserved.</div>
               <div className="flex gap-6">
-                <Link href="/audit" className="hover:text-white">Sample Report</Link>
-                <Link href="/case-studies" className="hover:text-white">Case Studies</Link>
-                <a href="mailto:yamplelabs@gmail.com" className="hover:text-white">yamplelabs@gmail.com</a>
+                <Link href="/audit" className="hover:text-white">
+                  Sample Report
+                </Link>
+                <Link href="/case-studies" className="hover:text-white">
+                  Case Studies
+                </Link>
+                <a href="mailto:yamplelabs@gmail.com" className="hover:text-white">
+                  yamplelabs@gmail.com
+                </a>
               </div>
             </div>
           </div>
         </footer>
-
       </main>
 
       {/* Floating AI Assistant Orb */}
@@ -715,6 +839,5 @@ export default function LandingPage() {
         <ServiceDetailPopup service={selectedService} onClose={() => setSelectedService(null)} />
       )}
     </div>
-  )
+  );
 }
-
